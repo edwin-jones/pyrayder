@@ -209,13 +209,14 @@ def render(player):
     pygame.display.flip()
 
 
+running = True
+
 def run():  
     """Run the game with this method"""
     pygame.init()
 
     player = Player(PLAYER_START_POSITION, PLAYER_START_DIRECTION, PLAYER_START_CAMERA_PLANE)
 
-    running = True
     while running:
 
         #delay until next frame.
