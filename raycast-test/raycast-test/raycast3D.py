@@ -1,7 +1,10 @@
+"""Main program module"""
+
 import math
 import colors
 import pygame
 import vector
+from player import Player
 
 """To rotate a vector, multiply it with the rotation matrix
 
@@ -12,109 +15,95 @@ ONE_DEGREE_IN_RADIANS = math.pi / 180
 
 FRAME_SPEED = int(1000 / 60) #frame time for 1000 / N fps, 33.3 for 30 fps and 16.6 for 60fps.
 
-MAP =   [
-        [1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
-        [1, 0, 0, 0, 0, 0, 0, 0, 0, 1],
-        [1, 0, 0, 0, 0, 0, 0, 0, 0, 1],
-        [1, 0, 0, 0, 0, 0, 0, 0, 0, 1],
-        [1, 0, 0, 0, 5, 3, 0, 0, 0, 1],
-        [1, 0, 0, 0, 1, 4, 0, 0, 0, 1],
-        [1, 0, 0, 0, 0, 0, 0, 0, 0, 1],
-        [1, 0, 0, 0, 0, 0, 0, 0, 0, 1],
-        [1, 0, 0, 0, 0, 0, 0, 0, 0, 1],
-        [1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
+MAP = [
+    [1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
+    [1, 0, 0, 0, 0, 0, 0, 0, 0, 1],
+    [1, 0, 0, 0, 0, 0, 0, 0, 0, 1],
+    [1, 0, 0, 0, 0, 0, 0, 0, 0, 1],
+    [1, 0, 0, 0, 5, 3, 0, 0, 0, 1],
+    [1, 0, 0, 0, 1, 4, 0, 0, 0, 1],
+    [1, 0, 0, 0, 0, 0, 0, 0, 0, 1],
+    [1, 0, 0, 0, 0, 0, 0, 0, 0, 1],
+    [1, 0, 0, 0, 0, 0, 0, 0, 0, 1],
+    [1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
+    ]
 
 
-        ]
+SCREEN_WIDTH = 640
+SCREEN_HEIGHT = 480
+
+ROTATION_SPEED = 0.25 #rotation speed is defined as squares per second.
+MOVE_SPEED = 0.25 #move speed is defined as squares per second.
 
 
-SCREEN_WIDTH = 400
-SCREEN_HEIGHT = 400
+SCREEN_SIZE = (SCREEN_WIDTH, SCREEN_HEIGHT)
+SCREEN = pygame.display.set_mode(SCREEN_SIZE)
 
-FAKE_ZERO = 0.000001
-
-
-#pygame/visual initialization
-pygame.init()
-
-
-
-size = (SCREEN_WIDTH, SCREEN_HEIGHT)
-screen = pygame.display.set_mode(size)
-
-playerPos = vector.Vector2(2,2)
-playerDir = vector.Vector2(1,0)
-cameraPlane = vector.Vector2(0,-0.5)
-
-time = 0
-oldTime = 0
-
-done = False
+PLAYER_START_POSITION = vector.Vector2(2, 2)
+PLAYER_START_DIRECTION = vector.Vector2(1, 0)
+PLAYER_START_CAMERA_PLANE = vector.Vector2(0, -0.5)
 
 WALL_PALETTE = [colors.BLACK, colors.WHITE, colors.RED, colors.GREEN, colors.BLUE, colors.YELLOW]
 
-#use this function to avoid zero if we risk a divide by zero expression.
-def Avoid_Zero(value):
+
+def avoid_zero(value):
+    """use this function to avoid zero if we risk a divide by zero expression."""
     if value == 0:
-        return FAKE_ZERO
+        return 0.000001
     else:
         return value
 
-while not done:
-
-    #delay until next frame.
-    pygame.time.wait(FRAME_SPEED)
-
-    screen.fill(colors.FLOOR_GRAY)
-
-    pygame.draw.rect(screen, colors.SKY_BLUE, (0,0, SCREEN_WIDTH, SCREEN_HEIGHT/2))
-
-    rotSpeed = 0.25 #rotation speed is defined as squares per second.
-    movSpeed = 0.25 #move speed is defined as squares per second.
-
-    #handle input
+def handle_input(player):
+    """This function handles control input for this program"""
     for event in pygame.event.get():
 
         #quit if user presses exit
         if event.type == pygame.QUIT:
-            done=True
-        
+            global running
+            running=False
+
         #handle rotation
         if event.type == pygame.KEYDOWN:
             if event.key == pygame.K_UP:
-                playerPos.x += playerDir.x * movSpeed
-                playerPos.y += playerDir.y * movSpeed
-            
+                player.position.x += player.direction.x * MOVE_SPEED
+                player.position.y += player.direction.y * MOVE_SPEED
+          
             if event.key == pygame.K_DOWN:
-                playerPos.x -= playerDir.x * movSpeed
-                playerPos.y -= playerDir.y * movSpeed
+                player.position.x -= player.direction.x * MOVE_SPEED
+                player.position.y -= player.direction.y * MOVE_SPEED
 
             if event.key == pygame.K_LEFT:
                 #both camera direction and camera plane must be rotated
-                oldDirX = playerDir.x
-                playerDir.x = playerDir.x * math.cos(rotSpeed) - playerDir.y * math.sin(rotSpeed)
-                playerDir.y = oldDirX * math.sin(rotSpeed) + playerDir.y * math.cos(rotSpeed)
-                oldPlaneX = cameraPlane.x
-                cameraPlane.x = cameraPlane.x * math.cos(rotSpeed) - cameraPlane.y * math.sin(rotSpeed)
-                cameraPlane.y = oldPlaneX * math.sin(rotSpeed) + cameraPlane.y * math.cos(rotSpeed)
+                old_dir_x = player.direction.x
+                player.direction.x = player.direction.x * math.cos(ROTATION_SPEED) - player.direction.y * math.sin(ROTATION_SPEED)
+                player.direction.y = old_dir_x * math.sin(ROTATION_SPEED) + player.direction.y * math.cos(ROTATION_SPEED)
+                old_plane_x = player.camera_plane.x
+                player.camera_plane.x = player.camera_plane.x * math.cos(ROTATION_SPEED) - player.camera_plane.y * math.sin(ROTATION_SPEED)
+                player.camera_plane.y = old_plane_x * math.sin(ROTATION_SPEED) + player.camera_plane.y * math.cos(ROTATION_SPEED)
 
             if event.key == pygame.K_RIGHT:            
                 #both camera direction and camera plane must be rotated
-                oldDirX = playerDir.x
-                playerDir.x = playerDir.x * math.cos(-rotSpeed) - playerDir.y * math.sin(-rotSpeed)
-                playerDir.y = oldDirX * math.sin(-rotSpeed) + playerDir.y * math.cos(-rotSpeed)
-                oldPlaneX = cameraPlane.x
-                cameraPlane.x = cameraPlane.x * math.cos(-rotSpeed) - cameraPlane.y * math.sin(-rotSpeed)
-                cameraPlane.y = oldPlaneX * math.sin(-rotSpeed) + cameraPlane.y * math.cos(-rotSpeed)
+                old_dir_x = player.direction.x
+                player.direction.x = player.direction.x * math.cos(-ROTATION_SPEED) - player.direction.y * math.sin(-ROTATION_SPEED)
+                player.direction.y = old_dir_x * math.sin(-ROTATION_SPEED) + player.direction.y * math.cos(-ROTATION_SPEED)
+                old_plane_x = player.camera_plane.x
+                player.camera_plane.x = player.camera_plane.x * math.cos(-ROTATION_SPEED) - player.camera_plane.y * math.sin(-ROTATION_SPEED)
+                player.camera_plane.y = old_plane_x * math.sin(-ROTATION_SPEED) + player.camera_plane.y * math.cos(-ROTATION_SPEED)
 
-    #draw screen
+
+def simulate(player):
+    """This method runs all simulation for the program"""
+    handle_input(player)
+
+def render(player):
+    """This method draws everything to the screen"""
     for x in range(0, SCREEN_WIDTH):
         #calculate ray position and direction
         cameraX = 2 * x / SCREEN_WIDTH - 1 #x-coordinate in camera space
-        rayPosX = playerPos.x
-        rayPosY = playerPos.y
-        rayDirX = playerDir.x + cameraPlane.x * cameraX
-        rayDirY = playerDir.y + cameraPlane.y * cameraX
+        rayPosX = player.position.x
+        rayPosY = player.position.y
+        rayDirX = player.direction.x + player.camera_plane.x * cameraX
+        rayDirY = player.direction.y + player.camera_plane.y * cameraX
 
         #which box of the map we're in
         mapX = int(rayPosX)
@@ -128,8 +117,8 @@ while not done:
         tempDirX = (rayDirX * rayDirX)
         tempDirY = (rayDirY * rayDirY)
 
-        tempDirX = Avoid_Zero(tempDirX)
-        tempDirY = Avoid_Zero(tempDirY)
+        tempDirX = avoid_zero(tempDirX)
+        tempDirY = avoid_zero(tempDirY)
 
         deltaDistX = math.sqrt(1 + (rayDirY * rayDirY) / tempDirX)
         deltaDistY = math.sqrt(1 + (rayDirX * rayDirX) / tempDirY)
@@ -184,7 +173,7 @@ while not done:
         else:
             perpWallDist = (mapY - rayPosY + (1 - stepY) / 2) / rayDirY
         
-        perpWallDist = Avoid_Zero(perpWallDist)
+        perpWallDist = avoid_zero(perpWallDist)
 
         #Calculate height of line to draw on screen
         lineHeight = int(SCREEN_HEIGHT / perpWallDist)
@@ -192,31 +181,54 @@ while not done:
         #calculate lowest and highest pixel to fill in current stripe
         drawStart = -lineHeight / 2 + SCREEN_HEIGHT / 2
 
-        if(drawStart < 0):
+        if drawStart < 0:
             drawStart = 0
 
         drawEnd = lineHeight / 2 + SCREEN_HEIGHT / 2
 
-        if(drawEnd >= SCREEN_HEIGHT):
+        if drawEnd >= SCREEN_HEIGHT:
             drawEnd = SCREEN_HEIGHT - 1
 
         #choose wall color
         mapColorIndex = MAP[mapX][mapY]
 
         color = WALL_PALETTE[mapColorIndex]
-      
-     
+
+
 
         #give x and y sides different brightness
-        if (side == 1):
+        if side == 1:
             color = (color[0]/2, color[1]/2, color[2]/2)
 
       #draw the pixels of the stripe as a vertical line
-        pygame.draw.line(screen, color, (x, drawStart), (x, drawEnd))
-   
+        pygame.draw.line(SCREEN, color, (x, drawStart), (x, drawEnd))
+
 
     # Go ahead and update the screen with what we've drawn.
     # This MUST happen after all the other drawing commands.
     pygame.display.flip()
 
-pygame.quit()
+
+def run():  
+    """Run the game with this method"""
+    pygame.init()
+
+    player = Player(PLAYER_START_POSITION, PLAYER_START_DIRECTION, PLAYER_START_CAMERA_PLANE)
+
+    running = True
+    while running:
+
+        #delay until next frame.
+        pygame.time.wait(FRAME_SPEED)
+
+        #fill screen with back buffer color and then draw the ceiling/sky.
+        SCREEN.fill(colors.FLOOR_GRAY)
+        pygame.draw.rect(SCREEN, colors.SKY_BLUE, (0, 0, SCREEN_WIDTH, SCREEN_HEIGHT/2))
+
+        simulate(player)
+        render(player)
+
+    pygame.quit()
+
+if __name__ == "__main__":
+    run()
