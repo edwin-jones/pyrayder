@@ -107,6 +107,10 @@ class Game(object):
         self.handle_input(player)
 
     def draw_ui(self):
+        if(__debug__):
+            self.draw_debug()
+
+    def draw_debug(self):
         basicfont = pygame.font.SysFont(None, 48)
         text = basicfont.render('fps: {}'.format(self.fps), True, colors.YELLOW)
         textrect = text.get_rect()
@@ -119,28 +123,27 @@ class Game(object):
         for x in range(0, self.SCREEN_WIDTH):
             #calculate ray position and direction
             cameraX = 2 * x / self.SCREEN_WIDTH - 1 #x-coordinate in camera space
-            rayPosX = player.position.x
-            rayPosY = player.position.y
-            rayDirX = player.direction.x + player.camera_plane.x * cameraX
-            rayDirY = player.direction.y + player.camera_plane.y * cameraX
+            rayPosition = player.position
+
+            rayDir = player.direction + player.camera_plane * cameraX
 
             #which box of the map we're in
-            mapX = int(rayPosX)
-            mapY = int(rayPosY)
+            mapX = int(rayPosition.x)
+            mapY = int(rayPosition.y)
 
             #length of ray from current position to next x or y-side
             sideDistX = 0
             sideDistY = 0
 
             #length of ray from one x or y-side to next x or y-side
-            tempDirX = (rayDirX * rayDirX)
-            tempDirY = (rayDirY * rayDirY)
+            tempDirX = (rayDir.x * rayDir.x)
+            tempDirY = (rayDir.y * rayDir.y)
 
             tempDirX = self.avoid_zero(tempDirX)
             tempDirY = self.avoid_zero(tempDirY)
 
-            deltaDistX = math.sqrt(1 + (rayDirY * rayDirY) / tempDirX)
-            deltaDistY = math.sqrt(1 + (rayDirX * rayDirX) / tempDirY)
+            deltaDistX = math.sqrt(1 + (rayDir.y * rayDir.y) / tempDirX)
+            deltaDistY = math.sqrt(1 + (rayDir.x * rayDir.x) / tempDirY)
             perpWallDist = 0
 
             #what direction to step in x or y-direction (either +1 or -1)
@@ -151,21 +154,21 @@ class Game(object):
             side = 0 #was a NS or a EW wall hit?
 
           #calculate step and initial sideDist
-            if rayDirX < 0:
+            if rayDir.x < 0:
                 stepX = -1
-                sideDistX = (rayPosX - mapX) * deltaDistX
+                sideDistX = (rayPosition.x - mapX) * deltaDistX
        
             else:
                 stepX = 1
-                sideDistX = (mapX + 1.0 - rayPosX) * deltaDistX
+                sideDistX = (mapX + 1.0 - rayPosition.x) * deltaDistX
        
-            if rayDirY < 0:
+            if rayDir.y < 0:
                 stepY = -1
-                sideDistY = (rayPosY - mapY) * deltaDistY
+                sideDistY = (rayPosition.y - mapY) * deltaDistY
        
             else:    
                 stepY = 1
-                sideDistY = (mapY + 1.0 - rayPosY) * deltaDistY
+                sideDistY = (mapY + 1.0 - rayPosition.y) * deltaDistY
 
             #perform DDA
             while (hit == False):
@@ -187,11 +190,11 @@ class Game(object):
 
             #Calculate distance projected on camera direction (oblique distance will give fisheye effect!)
             if (side == 0):
-                perpWallDist = (mapX - rayPosX + (1 - stepX) / 2) / rayDirX
+                perpWallDist = (mapX - rayPosition.x + (1 - stepX) / 2) / rayDir.x
         
             else:
-                perpWallDist = (mapY - rayPosY + (1 - stepY) / 2) / rayDirY
-        
+                perpWallDist = (mapY - rayPosition.y + (1 - stepY) / 2) / rayDir.y
+
             perpWallDist = self.avoid_zero(perpWallDist)
 
             #Calculate height of line to draw on screen
