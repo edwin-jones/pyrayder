@@ -24,6 +24,10 @@
     <Compile Include="colors.py">
       <SubType>Code</SubType>
     </Compile>
+    <Compile Include="game.py">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="player.py" />
     <Compile Include="raycast3D.py" />
     <Compile Include="raycast_test.py" />
     <Compile Include="vector.py">
