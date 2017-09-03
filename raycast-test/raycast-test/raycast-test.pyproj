@@ -24,6 +24,10 @@
     <Compile Include="colors.py">
       <SubType>Code</SubType>
     </Compile>
+    <Compile Include="console-output.py" />
+    <Compile Include="side.py">
+      <SubType>Code</SubType>
+    </Compile>
     <Compile Include="game.py">
       <SubType>Code</SubType>
     </Compile>

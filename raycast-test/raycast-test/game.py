@@ -4,6 +4,7 @@ import pygame
 #import vector
 from player import Player
 from pygame.math import Vector2
+from side import Side
 
 
 class Game(object):
@@ -151,7 +152,7 @@ class Game(object):
             stepY = 0
 
             hit = False #was there a wall hit?
-            side = 0 #was a NS or a EW wall hit?
+            side = Side.LeftOrRight #was a NS or a EW wall hit?
 
           #calculate step and initial sideDist
             if rayDir.x < 0:
@@ -177,19 +178,19 @@ class Game(object):
                 if (sideDistX < sideDistY):
                     sideDistX += deltaDistX
                     mapX += stepX
-                    side = 0
+                    side = Side.LeftOrRight
             
                 else:
                     sideDistY += deltaDistY
                     mapY += stepY
-                    side = 1
+                    side = Side.BottomOrTop
             
                 #Check if ray has hit a wall
                 if (self.MAP[mapX][mapY] > 0):
                      hit = True
 
             #Calculate distance projected on camera direction (oblique distance will give fisheye effect!)
-            if (side == 0):
+            if (side == Side.LeftOrRight):
                 perpWallDist = (mapX - rayPosition.x + (1 - stepX) / 2) / rayDir.x
         
             else:
@@ -219,7 +220,7 @@ class Game(object):
 
 
             #give x and y sides different brightness
-            if side == 1:
+            if side == Side.BottomOrTop:
                 color = (color[0]/2, color[1]/2, color[2]/2)
 
           #draw the pixels of the stripe as a vertical line
