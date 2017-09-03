@@ -37,8 +37,8 @@ class Game(object):
     SCREEN_WIDTH = 640
     SCREEN_HEIGHT = 480
 
-    ROTATION_SPEED = math.pi / 48 #rotation speed is defined as squares per second.
-    MOVE_SPEED = 0.05 #move speed is defined as squares per second.
+    ROTATION_SPEED = 2.5 #rotation speed is defined degrees per frame
+    MOVE_SPEED = 0.05 #move speed is defined as squares per frame.
 
 
     SCREEN_SIZE = (SCREEN_WIDTH, SCREEN_HEIGHT)
@@ -85,29 +85,21 @@ class Game(object):
 
         #strafe left and right
         if pressed[pygame.K_a]:
-            sideDirection = player.direction.rotate(90)
-            player.position += sideDirection * self.MOVE_SPEED
+            player.position -= player.camera_plane * self.MOVE_SPEED
           
         if  pressed[pygame.K_d]:
-            sideDirection = player.direction.rotate(90)
-            player.position -= sideDirection * self.MOVE_SPEED
+            player.position += player.camera_plane * self.MOVE_SPEED
         
 		#rotate left and right
         if  pressed[pygame.K_LEFT]:
             #both camera direction and camera plane must be rotated
-
-            old_dir_x = player.direction.x
-            player.direction.x = player.direction.x * math.cos(self.ROTATION_SPEED) - player.direction.y * math.sin(self.ROTATION_SPEED)
-            player.direction.y = old_dir_x * math.sin(self.ROTATION_SPEED) + player.direction.y * math.cos(self.ROTATION_SPEED)
-                
-            old_plane_x = player.camera_plane.x
-            player.camera_plane.x = player.camera_plane.x * math.cos(self.ROTATION_SPEED) - player.camera_plane.y * math.sin(self.ROTATION_SPEED)
-            player.camera_plane.y = old_plane_x * math.sin(self.ROTATION_SPEED) + player.camera_plane.y * math.cos(self.ROTATION_SPEED)
+            player.direction = player.direction.rotate(self.ROTATION_SPEED)
+            player.camera_plane = player.camera_plane.rotate(self.ROTATION_SPEED)
 
         if pressed[pygame.K_RIGHT]:            
             #both camera direction and camera plane must be rotated
-            player.direction = player.direction.rotate(-self.ROTATION_SPEED * self.ONE_RADIAN_IN_DEGREES)
-            player.camera_plane = player.camera_plane.rotate(-self.ROTATION_SPEED * self.ONE_RADIAN_IN_DEGREES)
+            player.direction = player.direction.rotate(-self.ROTATION_SPEED)
+            player.camera_plane = player.camera_plane.rotate(-self.ROTATION_SPEED)
 
 
     def simulate(self, player):
