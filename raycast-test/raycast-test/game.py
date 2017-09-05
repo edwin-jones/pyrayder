@@ -92,6 +92,12 @@ class Game(object):
             player.position += player.camera_plane * self.MOVE_SPEED
         
 		#rotate left and right
+        # note, to rotate a vector a by an angle to become vector r(a):
+        # j+k = a so r(j) + r(k) = r(a)
+        # The vectors (a.x, 0) and (0, a.y) meet the criteria so if we rotate then sum them, we get r(a).
+        # It is easy to rotate a vector with one zero axis around the origin (0,0) with SOHCAH(toa) as the sine/cosine are the new elements in a unit circle.
+        # See http://mathworld.wolfram.com/images/eps-gif/RotationMatrixAxes_1000.gif for more a better explanation for the rotating the vector (1,1)
+
         if  pressed[pygame.K_LEFT]:
             #both camera direction and camera plane must be rotated
             player.direction = player.direction.rotate(self.ROTATION_SPEED)
@@ -122,10 +128,15 @@ class Game(object):
     def render(self, player):
         """This method draws everything to the screen"""
         for x in range(0, self.SCREEN_WIDTH):
-            #calculate ray position and direction
-            cameraX = 2 * x / self.SCREEN_WIDTH - 1 #x-coordinate in camera space
+           
+		   #calculate ray position and direction
+
+            ratio = x / self.SCREEN_WIDTH # what percentage of the screen with is the current x value.
+            cameraX = (2 * ratio) - 1 # x-coordinate along camera plane, from -1 through 0 and on to 1
+
             rayPosition = player.position
 
+            #The current ray is the sum of the player direction and the x-coordinate along camera plane
             rayDir = player.direction + player.camera_plane * cameraX
 
             #which box of the map we're in
@@ -137,14 +148,25 @@ class Game(object):
             sideDistY = 0
 
             #length of ray from one x or y-side to next x or y-side
-            tempDirX = (rayDir.x * rayDir.x)
-            tempDirY = (rayDir.y * rayDir.y)
+            #see https://gamedev.stackexchange.com/q/45013 for a better explanation.
 
-            tempDirX = self.avoid_zero(tempDirX)
-            tempDirY = self.avoid_zero(tempDirY)
+			#calculate how the ratios of 1 to the x and y components
+			#that is what number do you need to multiply x or y by to turn them into 1.
+            xRatio = 1 / self.avoid_zero(rayDir.x)
+            yRatio = 1 / self.avoid_zero(rayDir.y)
 
-            deltaDistX = math.sqrt(1 + (rayDir.y * rayDir.y) / tempDirX)
-            deltaDistY = math.sqrt(1 + (rayDir.x * rayDir.x) / tempDirY)
+            #create vectors for where x/y has length 1 using these multipliers.
+            scaled_x = rayDir * xRatio  
+            scaled_y = rayDir * yRatio
+
+            #the length of these vectors represent how far the ray has to travel to move one unit in x or one unit in y.
+            # Remember, we can get the length of a vector with the Pythagorean theorem. 
+            # a*a + b*b = c*c OR 
+            # x*x + y*y = length * length SO
+            # length = sqrt(x*x + y*y)
+            deltaDistX = scaled_x.length()
+            deltaDistY = scaled_y.length()
+
             perpWallDist = 0
 
             #what direction to step in x or y-direction (either +1 or -1)
@@ -217,8 +239,6 @@ class Game(object):
 
             color = self.WALL_PALETTE[mapColorIndex]
 
-
-
             #give x and y sides different brightness
             if side == Side.BottomOrTop:
                 color = (color[0]/2, color[1]/2, color[2]/2)
@@ -254,7 +274,7 @@ class Game(object):
 
 			#delay until next frame.
             clock.tick(self.TARGET_FPS)
-            self.fps = int(clock.get_fps())
+            self.fps = math.floor(clock.get_fps())
 
         pygame.quit()
 
