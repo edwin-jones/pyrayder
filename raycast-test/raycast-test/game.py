@@ -26,14 +26,14 @@ class Game(object):
 
     MAP = (
             (1, 1, 1, 1, 1, 1, 1, 1, 1, 1),
-            (1, 2, 0, 0, 0, 0, 0, 0, 3, 1),
+            (1, 2, 0, 0, 0, 0, 0, 0, 0, 1),
             (1, 0, 0, 0, 0, 0, 0, 0, 0, 1),
             (1, 0, 0, 0, 0, 0, 0, 0, 0, 1),
             (1, 0, 0, 0, 2, 3, 0, 0, 0, 1),
             (1, 0, 0, 0, 5, 6, 0, 0, 0, 1),
             (1, 0, 0, 0, 0, 0, 0, 0, 0, 1),
-            (1, 0, 0, 0, 0, 0, 0, 0, 0, 1),
-            (1, 5, 0, 0, 0, 0, 0, 0, 4, 1),
+            (1, 0, 0, 0, 0, 0, 0, 0, 4, 1),
+            (1, 3, 3, 0, 0, 0, 0, 0, 4, 1),
             (1, 1, 1, 1, 1, 1, 1, 1, 1, 1),
           )
 
@@ -116,16 +116,28 @@ class Game(object):
         """This method runs all simulation for the program"""
         self.handle_input(player)
 
-    def draw_ui(self):
+    def draw_ui(self, player):
         if(__debug__):
-            self.draw_debug()
+            self.draw_debug(player)
 
-    def draw_debug(self):
+    def draw_debug(self, player):
         basicfont = pygame.font.SysFont(None, 48)
         text = basicfont.render('fps: {}'.format(self.fps), True, colors.YELLOW)
         textrect = text.get_rect()
         textrect.centerx = 150
         textrect.centery = 20
+        self.SCREEN.blit(text, textrect)
+
+        text = basicfont.render('x: {:.2f}'.format(player.position.x), True, colors.YELLOW)
+        textrect = text.get_rect()
+        textrect.centerx = 150
+        textrect.centery = 60
+        self.SCREEN.blit(text, textrect)
+
+        text = basicfont.render('y: {:.2f}'.format(player.position.y), True, colors.YELLOW)
+        textrect = text.get_rect()
+        textrect.centerx = 150
+        textrect.centery = 90
         self.SCREEN.blit(text, textrect)
 
     def render(self, player):
@@ -273,7 +285,7 @@ class Game(object):
           #draw the pixels of the stripe as a vertical line
             pygame.draw.line(self.SCREEN, color, (x, drawStart), (x, drawEnd))
 
-        self.draw_ui()
+        self.draw_ui(player)
 
         # Go ahead and update the screen with what we've drawn.
         # This MUST happen after all the other drawing commands.
