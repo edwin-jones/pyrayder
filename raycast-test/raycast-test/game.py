@@ -24,6 +24,7 @@ class Game(object):
 
     TARGET_FPS = 60 
 
+    #flip grid 90 left for 'real' map. +y is up, +x is right.
     MAP = (
             (1, 1, 1, 1, 1, 1, 1, 1, 1, 1),
             (1, 2, 0, 0, 0, 0, 0, 0, 0, 1),
@@ -36,6 +37,8 @@ class Game(object):
             (1, 3, 3, 0, 0, 0, 0, 0, 4, 1),
             (1, 1, 1, 1, 1, 1, 1, 1, 1, 1),
           )
+
+    #MAP2 (2,3,3)
 
 
     SCREEN_WIDTH = 640
@@ -221,13 +224,13 @@ class Game(object):
             # the same principles as above apply for  distance checks for the distance for the ray to go to hit the square below and above.
             if rayDir.y < 0:
 
-                #a negative y means mean we are going up
+                #a negative y means mean we are going down
                 stepY = -1
                 y_ratio = (rayPosition.y - mapY)
                 distance_to_side_y =  distance_delta_y * y_ratio
        
             else:
-                #a positive y means mean we are going down
+                #a positive y means mean we are going up
                 stepY = 1
                 y_ratio = (mapY + 1 - rayPosition.y)
                 distance_to_side_y = distance_delta_y * y_ratio
