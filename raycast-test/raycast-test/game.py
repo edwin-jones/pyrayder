@@ -1,3 +1,6 @@
+#inspiration loving taken from here http://lodev.org/cgtutor/raycasting.html
+#and here https://www.essentialmath.com/GDC2012/GDC2012_JMV_Rotations.pdf (see 2D vec rotations)
+
 import math
 import colors
 import pygame
@@ -21,18 +24,18 @@ class Game(object):
 
     TARGET_FPS = 60 
 
-    MAP = [
-        [1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
-        [1, 0, 0, 0, 0, 0, 0, 0, 0, 1],
-        [1, 0, 0, 0, 0, 0, 0, 0, 0, 1],
-        [1, 0, 0, 0, 0, 0, 0, 0, 0, 1],
-        [1, 0, 0, 0, 5, 3, 0, 0, 0, 1],
-        [1, 0, 0, 0, 1, 4, 0, 0, 0, 1],
-        [1, 0, 0, 0, 0, 0, 0, 0, 0, 1],
-        [1, 0, 0, 0, 0, 0, 0, 0, 0, 1],
-        [1, 0, 0, 0, 0, 0, 0, 0, 0, 1],
-        [1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
-        ]
+    MAP = (
+            (1, 1, 1, 1, 1, 1, 1, 1, 1, 1),
+            (1, 2, 0, 0, 0, 0, 0, 0, 3, 1),
+            (1, 0, 0, 0, 0, 0, 0, 0, 0, 1),
+            (1, 0, 0, 0, 0, 0, 0, 0, 0, 1),
+            (1, 0, 0, 0, 2, 3, 0, 0, 0, 1),
+            (1, 0, 0, 0, 5, 6, 0, 0, 0, 1),
+            (1, 0, 0, 0, 0, 0, 0, 0, 0, 1),
+            (1, 0, 0, 0, 0, 0, 0, 0, 0, 1),
+            (1, 5, 0, 0, 0, 0, 0, 0, 4, 1),
+            (1, 1, 1, 1, 1, 1, 1, 1, 1, 1),
+          )
 
 
     SCREEN_WIDTH = 640
@@ -45,11 +48,11 @@ class Game(object):
     SCREEN_SIZE = (SCREEN_WIDTH, SCREEN_HEIGHT)
     SCREEN = pygame.display.set_mode(SCREEN_SIZE)
 
-    PLAYER_START_POSITION = Vector2(2, 2)
+    PLAYER_START_POSITION = Vector2(3, 3)
     PLAYER_START_DIRECTION = Vector2(1, 0)
-    PLAYER_START_CAMERA_PLANE = Vector2(0, -0.5)
+    PLAYER_START_CAMERA_PLANE = Vector2(0, -0.66) #66 degree fov. Length 1 would be a 90 degree fov, 0.5 would be 45. Camera plane must be perpendicular to player direction!
 
-    WALL_PALETTE = [colors.BLACK, colors.WHITE, colors.RED, colors.GREEN, colors.BLUE, colors.YELLOW]
+    WALL_PALETTE = [colors.BLACK, colors.WHITE, colors.RED, colors.GREEN, colors.BLUE, colors.YELLOW, colors.PURPLE, colors.ORANGE]
 
     fps = 0
 
@@ -131,8 +134,8 @@ class Game(object):
            
 		   #calculate ray position and direction
 
-            ratio = x / self.SCREEN_WIDTH # what percentage of the screen with is the current x value.
-            cameraX = (2 * ratio) - 1 # x-coordinate along camera plane, from -1 through 0 and on to 1
+            x_ratio = x / self.SCREEN_WIDTH # what percentage of the screen with is the current x value.
+            cameraX = (2 * x_ratio) - 1 # x-coordinate along camera plane, from -1 through 0 and on to 1
 
             rayPosition = player.position
 
@@ -144,8 +147,8 @@ class Game(object):
             mapY = int(rayPosition.y)
 
             #length of ray from current position to next x or y-side
-            sideDistX = 0
-            sideDistY = 0
+            distance_to_side_x = 0
+            distance_to_side_y = 0
 
             #length of ray from one x or y-side to next x or y-side
             #see https://gamedev.stackexchange.com/q/45013 for a better explanation.
@@ -164,8 +167,8 @@ class Game(object):
             # a*a + b*b = c*c OR 
             # x*x + y*y = length * length SO
             # length = sqrt(x*x + y*y)
-            deltaDistX = scaled_x.length()
-            deltaDistY = scaled_y.length()
+            distance_delta_x = scaled_x.length()
+            distance_delta_y = scaled_y.length()
 
             perpWallDist = 0
 
@@ -176,34 +179,58 @@ class Game(object):
             hit = False #was there a wall hit?
             side = Side.LeftOrRight #was a NS or a EW wall hit?
 
-          #calculate step and initial sideDist
+            #calculate step and initial sideDist
             if rayDir.x < 0:
-                stepX = -1
-                sideDistX = (rayPosition.x - mapX) * deltaDistX
+
+                # a negative x means we are moving left
+                stepX = -1 
+
+                # subtract current map square x cord from the total ray x to get the difference/distance in x from the ray origin to the left wall,
+                # as if we are moving right the rayPosition.x will be the greater value and we want an absolute/non negative value for the difference.
+                # this is the same as the ratio of how far the ray position is across the map grid square in x, 0 = 0% and 1 = 100%.              
+                x_ratio = (rayPosition.x - mapX)
+
+                # multiply distance_delta by this ratio to get the true distance we need to go in the direction of the ray to hit the left wall.
+                distance_to_side_x = distance_delta_x * x_ratio
        
             else:
+
+                # a positive x means we are moving right
                 stepX = 1
-                sideDistX = (mapX + 1.0 - rayPosition.x) * deltaDistX
+
+                # subtract ray.x from the NEXT square's X co-ordinate to get the difference/distance in x from the ray origin to the right wall,
+                # as if we are moving right the  map x + 1 will be the greater value and we want an absolute/non negative value for the difference.
+                # this is the same as the ratio of how far the ray position is across the next map grid square in x, 0 = 0% and 1 = 100%.              
+                x_ratio = (mapX + 1 - rayPosition.x)
+
+                # multiply distance_delta by this ratio to get the true distance we need to go in the direction of the ray to hit the right wall.
+                distance_to_side_x = distance_delta_x * x_ratio
        
+            # the same principles as above apply for  distance checks for the distance for the ray to go to hit the square below and above.
             if rayDir.y < 0:
+
+                #a negative y means mean we are going up
                 stepY = -1
-                sideDistY = (rayPosition.y - mapY) * deltaDistY
+                y_ratio = (rayPosition.y - mapY)
+                distance_to_side_y =  distance_delta_y * y_ratio
        
-            else:    
+            else:
+                #a positive y means mean we are going down
                 stepY = 1
-                sideDistY = (mapY + 1.0 - rayPosition.y) * deltaDistY
+                y_ratio = (mapY + 1 - rayPosition.y)
+                distance_to_side_y = distance_delta_y * y_ratio
 
             #perform DDA
             while (hit == False):
         
                 #jump to next map square, OR in x-direction, OR in y-direction
-                if (sideDistX < sideDistY):
-                    sideDistX += deltaDistX
+                if (distance_to_side_x < distance_to_side_y):
+                    distance_to_side_x += distance_delta_x
                     mapX += stepX
                     side = Side.LeftOrRight
             
                 else:
-                    sideDistY += deltaDistY
+                    distance_to_side_y += distance_delta_y
                     mapY += stepY
                     side = Side.BottomOrTop
             
@@ -267,7 +294,7 @@ class Game(object):
 
             #fill screen with back buffer color and then draw the ceiling/sky.
             self.SCREEN.fill(colors.FLOOR_GRAY)
-            pygame.draw.rect(self.SCREEN, colors.SKY_BLUE, (0, 0, self.SCREEN_WIDTH, self.SCREEN_HEIGHT/2))
+            pygame.draw.rect(self.SCREEN, colors.CEILING_GRAY, (0, 0, self.SCREEN_WIDTH, self.SCREEN_HEIGHT/2))
 
             self.simulate(player)
             self.render(player)
