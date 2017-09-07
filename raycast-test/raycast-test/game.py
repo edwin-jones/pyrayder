@@ -40,7 +40,7 @@ class Game(object):
 
     #rotate the grid 90 degrees right to fix the issue.
     #You can find out how this works here: https://stackoverflow.com/questions/8421337
-    MAP = list(zip(*MAP[::-1]))
+    MAP = tuple(zip(*MAP[::-1]))
 
     SCREEN_WIDTH = 640
     SCREEN_HEIGHT = 480
