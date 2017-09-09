@@ -170,14 +170,14 @@ class Game(object):
             x_ratio = x / self.SCREEN_WIDTH # what percentage of the screen with is the current x value.
             cameraX = (2 * x_ratio) - 1 # x-coordinate along camera plane, from -1 through 0 and on to 1
 
-            rayPosition = player.position
+            ray_origin = player.position
 
             #The current ray is the sum of the player direction and the x-coordinate along camera plane
-            rayDir = player.direction + player.camera_plane * cameraX
+            ray_direction = player.direction + player.camera_plane * cameraX
 
             #which box of the map we're in
-            mapX = int(rayPosition.x)
-            mapY = int(rayPosition.y)
+            mapX = int(ray_origin.x)
+            mapY = int(ray_origin.y)
 
             #length of ray from current position to next x or y-side
             distance_to_side_x = 0
@@ -188,12 +188,12 @@ class Game(object):
 
 			#calculate how the ratios of 1 to the x and y components
 			#that is what number do you need to multiply x or y by to turn them into 1.
-            xRatio = 1 / self.avoid_zero(rayDir.x)
-            yRatio = 1 / self.avoid_zero(rayDir.y)
+            xRatio = 1 / self.avoid_zero(ray_direction.x)
+            yRatio = 1 / self.avoid_zero(ray_direction.y)
 
             #create vectors for where x/y has length 1 using these multipliers.
-            scaled_x = rayDir * xRatio  
-            scaled_y = rayDir * yRatio
+            scaled_x = ray_direction * xRatio  
+            scaled_y = ray_direction * yRatio
 
             #the length of these vectors represent how far the ray has to travel to move one unit in x or one unit in y.
             # Remember, we can get the length of a vector with the Pythagorean theorem. 
@@ -213,7 +213,7 @@ class Game(object):
             side = Side.LeftOrRight #was a NS or a EW wall hit?
 
             #calculate step and initial sideDist
-            if rayDir.x < 0:
+            if ray_direction.x < 0:
 
                 # a negative x means we are moving left
                 stepX = -1 
@@ -221,7 +221,7 @@ class Game(object):
                 # subtract current map square x cord from the total ray x to get the difference/distance in x from the ray origin to the left wall,
                 # as if we are moving right the rayPosition.x will be the greater value and we want an absolute/non negative value for the difference.
                 # this is the same as the ratio of how far the ray position is across the map grid square in x, 0 = 0% and 1 = 100%.              
-                x_ratio = (rayPosition.x - mapX)
+                x_ratio = (ray_origin.x - mapX)
 
                 # multiply distance_delta by this ratio to get the true distance we need to go in the direction of the ray to hit the left wall.
                 distance_to_side_x = distance_delta_x * x_ratio
@@ -234,23 +234,23 @@ class Game(object):
                 # subtract ray.x from the NEXT square's X co-ordinate to get the difference/distance in x from the ray origin to the right wall,
                 # as if we are moving right the  map x + 1 will be the greater value and we want an absolute/non negative value for the difference.
                 # this is the same as the ratio of how far the ray position is across the next map grid square in x, 0 = 0% and 1 = 100%.              
-                x_ratio = (mapX + 1 - rayPosition.x)
+                x_ratio = (mapX + 1 - ray_origin.x)
 
                 # multiply distance_delta by this ratio to get the true distance we need to go in the direction of the ray to hit the right wall.
                 distance_to_side_x = distance_delta_x * x_ratio
        
             # the same principles as above apply for  distance checks for the distance for the ray to go to hit the square below and above.
-            if rayDir.y < 0:
+            if ray_direction.y < 0:
 
                 #a negative y means mean we are going down
                 stepY = -1
-                y_ratio = (rayPosition.y - mapY)
+                y_ratio = (ray_origin.y - mapY)
                 distance_to_side_y =  distance_delta_y * y_ratio
        
             else:
                 #a positive y means mean we are going up
                 stepY = 1
-                y_ratio = (mapY + 1 - rayPosition.y)
+                y_ratio = (mapY + 1 - ray_origin.y)
                 distance_to_side_y = distance_delta_y * y_ratio
 
             #perform DDA
@@ -286,21 +286,27 @@ class Game(object):
 
             #Calculate distance projected on camera direction (oblique distance will give fisheye effect!)
             if (side == Side.LeftOrRight):
-                perpWallDist = (mapX - rayPosition.x + (1 - stepX) / 2) / rayDir.x
+                perpWallDist = (mapX - ray_origin.x + (1 - stepX) / 2) / ray_direction.x
         
             else:
-                perpWallDist = (mapY - rayPosition.y + (1 - stepY) / 2) / rayDir.y
+                distance_in_y = mapY - ray_origin.y
+                thing = (1 - stepY) / 2 #if step = 1, make it thing 0. if step = -1 make it 1.
+                perpWallDist = (distance_in_y + thing) / ray_direction.y
 
             perpWallDist = self.avoid_zero(perpWallDist)
 
+
             #Calculate height of line to draw on screen
+            #we bring this into screen space by calculating as distance 1 = screenheight. Distance 2 = 1/2 screenheight. Distance 0.5 = 2 * screenheight.
+            #This makes sure the further away we are the smaller the line is and the closer the taller the line is.
             lineHeight = int(self.SCREEN_HEIGHT / perpWallDist)
 
             #calculate lowest and highest pixel to fill in current stripe
-            #a start of a line 0 to 100 can be though of as 
+            #a start of a line can be through of as half the line up (-y) from the center of the screen in y (screen height /2).
 
             drawStart = -lineHeight / 2 + self.HALF_SCREEN_HEIGHT
 
+            #a end of a line can be through of as half the line down (+y) from the center of the screen in y (screen height /2).
             drawEnd = lineHeight / 2 + self.HALF_SCREEN_HEIGHT
 
             #clamp draw start and draw end - there is no point drawing off the top or bottom of the screen.
