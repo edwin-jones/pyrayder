@@ -44,6 +44,7 @@ class Game(object):
 
     SCREEN_WIDTH = 640
     SCREEN_HEIGHT = 480
+    HALF_SCREEN_HEIGHT = SCREEN_HEIGHT / 2
 
     ROTATION_SPEED = 2.5 #rotation speed is defined degrees per frame
     MOVE_SPEED = 0.05 #move speed is defined as squares per frame.
@@ -86,10 +87,26 @@ class Game(object):
 
 		#forward and backward
         if pressed[pygame.K_UP]:
-            player.position += player.direction * self.MOVE_SPEED
+
+            #very basic collision checking by figuring out where will be IF we move forward
+            #and checking to see if that position is inside a map square with something in it we don't want to walk through.
+            #We have to cut out the decimal part of the result with math.floor because the 2D map array is accessed by integer/whole number index.
+            new_position = player.position + player.direction
+            x = math.floor(new_position.x)
+            y = math.floor(new_position.y)
+
+            if self.MAP[x][y] < 1:
+                player.position += player.direction * self.MOVE_SPEED
           
         if  pressed[pygame.K_DOWN]:
-            player.position -= player.direction * self.MOVE_SPEED
+
+            #same basic collision check as above, just in reverse because we are trying to move backwards.
+            new_position = player.position - player.direction
+            x = math.floor(new_position.x)
+            y = math.floor(new_position.y)
+
+            if self.MAP[x][y] < 1:
+                player.position -= player.direction * self.MOVE_SPEED
 
         #strafe left and right
         if pressed[pygame.K_a]:
@@ -239,16 +256,29 @@ class Game(object):
             #perform DDA
             while (hit == False):
         
-                #jump to next map square, OR in x-direction, OR in y-direction
+                #jump to next map square, OR in x-direction, OR in y-direction - whichever is the closest side.
                 if (distance_to_side_x < distance_to_side_y):
+
+                    #increase the distance to side x by 1 map unit in x on the direction of this vector.
+                    #This means we will go from touching the next left/right side wall the the wall 1 unit after that.
                     distance_to_side_x += distance_delta_x
+
+                    #increase the mapX index by 1/-1 depending on direction.
                     mapX += stepX
+
+                    #we are moving in x, so the current side to check is the left or right side.
                     side = Side.LeftOrRight
             
                 else:
+                    #increase the distance to side x by 1 map unit in y on the direction of this vector.
+                    #This means we will go from touching the next top/bottom side wall the the wall 1 unit after that.
                     distance_to_side_y += distance_delta_y
+
+                    #increase the mapY index by 1/-1 depending on direction.
                     mapY += stepY
-                    side = Side.BottomOrTop
+
+                    #we are moving in y, so the current side to check is the top or bottom side.
+                    side = Side.TopOrBottom
             
                 #Check if ray has hit a wall
                 if (self.MAP[mapX][mapY] > 0):
@@ -267,24 +297,24 @@ class Game(object):
             lineHeight = int(self.SCREEN_HEIGHT / perpWallDist)
 
             #calculate lowest and highest pixel to fill in current stripe
-            drawStart = -lineHeight / 2 + self.SCREEN_HEIGHT / 2
+            #a start of a line 0 to 100 can be though of as 
 
-            if drawStart < 0:
-                drawStart = 0
+            drawStart = -lineHeight / 2 + self.HALF_SCREEN_HEIGHT
 
-            drawEnd = lineHeight / 2 + self.SCREEN_HEIGHT / 2
+            drawEnd = lineHeight / 2 + self.HALF_SCREEN_HEIGHT
 
-            if drawEnd >= self.SCREEN_HEIGHT:
-                drawEnd = self.SCREEN_HEIGHT - 1
+            #clamp draw start and draw end - there is no point drawing off the top or bottom of the screen.
+            #remember, we draw from top to bottom.
+            drawStart = max(drawStart, 0)
+            drawEnd = min(drawEnd, self.SCREEN_HEIGHT)
 
             #choose wall color
             mapColorIndex = self.MAP[mapX][mapY]
-
             color = self.WALL_PALETTE[mapColorIndex]
 
             #give x and y sides different brightness
-            if side == Side.BottomOrTop:
-                color = (color[0]/2, color[1]/2, color[2]/2)
+            if side == Side.TopOrBottom:
+                color = colors.halve_color(color)
 
           #draw the pixels of the stripe as a vertical line
             pygame.draw.line(self.SCREEN, color, (x, drawStart), (x, drawEnd))
