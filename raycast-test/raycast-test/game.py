@@ -1,4 +1,4 @@
-#inspiration loving taken from here http://lodev.org/cgtutor/raycasting.html
+#inspiration lovingly taken from here http://lodev.org/cgtutor/raycasting.html
 #and here https://www.essentialmath.com/GDC2012/GDC2012_JMV_Rotations.pdf (see 2D vec rotations)
 
 import math
@@ -286,19 +286,22 @@ class Game(object):
 
             #Calculate distance projected on camera direction (oblique distance will give fisheye effect!)
             if (side == Side.LeftOrRight):
-                perpWallDist = (mapX - ray_origin.x + (1 - stepX) / 2) / ray_direction.x
+                distance_in_x = mapX - ray_origin.x #this difference is how far the ray has travelled in x before hitting a side wall.
+                one_or_zero = (1 - stepX) / 2 #if step = 1/positive x/right, make this 0. if step = -1/negative x/left make it 1. 
+                perpWallDist = (distance_in_x + one_or_zero) / ray_direction.x
+        
         
             else:
-                distance_in_y = mapY - ray_origin.y
-                thing = (1 - stepY) / 2 #if step = 1, make it thing 0. if step = -1 make it 1.
-                perpWallDist = (distance_in_y + thing) / ray_direction.y
+                distance_in_y = mapY - ray_origin.y #this difference is how far the ray has travelled in y before hitting a wall.
+                one_or_zero = (1 - stepY) / 2 #if step = 1/positive y/up, make this 0. if step = -1/negative y/down make it 1.
+                perpWallDist = (distance_in_y + one_or_zero) / ray_direction.y
 
             perpWallDist = self.avoid_zero(perpWallDist)
 
 
             #Calculate height of line to draw on screen
-            #we bring this into screen space by calculating as distance 1 = screenheight. Distance 2 = 1/2 screenheight. Distance 0.5 = 2 * screenheight.
-            #This makes sure the further away we are the smaller the line is and the closer the taller the line is.
+            #we bring this into screen space by calculating as distance 1 (at the same point as the camera plane) = screenheight. Distance 2 = 1/2 screenheight. Distance 0.5 = 2 * screenheight.
+            #This makes sure the further away we are the smaller the line is and the closer the taller the line is, making sure the screen is filled by objects in the same place as the camera.
             lineHeight = int(self.SCREEN_HEIGHT / perpWallDist)
 
             #calculate lowest and highest pixel to fill in current stripe

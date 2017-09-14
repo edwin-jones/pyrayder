@@ -4,7 +4,7 @@
     <SchemaVersion>2.0</SchemaVersion>
     <ProjectGuid>6fcaee35-21fe-4cd3-ab02-8ac920825173</ProjectGuid>
     <ProjectHome>.</ProjectHome>
-    <StartupFile>raycast3D.py</StartupFile>
+    <StartupFile>main.pyw</StartupFile>
     <SearchPath>
     </SearchPath>
     <WorkingDirectory>.</WorkingDirectory>
@@ -25,6 +25,9 @@
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="console-output.py" />
+    <Compile Include="main.pyw">
+      <SubType>Code</SubType>
+    </Compile>
     <Compile Include="side.py">
       <SubType>Code</SubType>
     </Compile>
@@ -32,7 +35,6 @@
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="player.py" />
-    <Compile Include="raycast3D.py" />
     <Compile Include="raycast_test.py" />
     <Compile Include="vector.py">
       <SubType>Code</SubType>
