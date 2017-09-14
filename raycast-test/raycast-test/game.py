@@ -297,8 +297,8 @@ class Game(object):
 
 
             #Calculate height of line to draw on screen
-            #we bring this into screen space by calculating as distance 1 (at the same point as the camera plane) = screenheight. Distance 2 = 1/2 screenheight. Distance 0.5 = 2 * screenheight.
-            #This makes sure the further away we are the smaller the line is and the closer the taller the line is, making sure the screen is filled by objects in the same place as the camera.
+            #we bring this into screen space by calculating as distance 1 = screenheight. Distance 2 = 1/2 screenheight. Distance 0.5 = 2 * screenheight.
+            #This makes sure the further away we are the smaller the line is and the closer the taller the line is.
             lineHeight = int(self.SCREEN_HEIGHT / perpWallDist)
 
             #calculate lowest and highest pixel to fill in current stripe
