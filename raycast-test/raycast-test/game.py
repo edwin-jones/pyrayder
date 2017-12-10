@@ -8,6 +8,7 @@ import pygame
 from player import Player
 from pygame.math import Vector2
 from side import Side
+from texture_loader import TextureLoader
 
 
 class Game(object):
@@ -60,6 +61,11 @@ class Game(object):
     WALL_PALETTE = [colors.BLACK, colors.WHITE, colors.RED, colors.GREEN, colors.BLUE, colors.YELLOW, colors.PURPLE, colors.ORANGE]
 
     fps = 0
+
+    texture_loader = TextureLoader("assets/textures")
+    TEXTURES = texture_loader.get_textures()
+
+    TEXTURE_WIDTH = 64
 
     def avoid_zero(self, value):
         """use this function to avoid zero if we risk a divide by zero expression."""
@@ -321,9 +327,17 @@ class Game(object):
             mapColorIndex = self.MAP[mapX][mapY]
             color = self.WALL_PALETTE[mapColorIndex]
 
+            #get texture to use. -1 so we can start at index 0 of texxture array
+            textureIndex = self.MAP[mapX][mapY] - 1
+            textureIndex = max(0, textureIndex)
+            texture = self.TEXTURES[textureIndex]
+
+            color = texture.get_at((1, 1))
+
             #give x and y sides different brightness
             if side == Side.TopOrBottom:
                 color = colors.halve_color(color)
+
 
           #draw the pixels of the stripe as a vertical line
             pygame.draw.line(self.SCREEN, color, (x, drawStart), (x, drawEnd))
