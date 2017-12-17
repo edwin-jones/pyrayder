@@ -1,14 +1,16 @@
 #inspiration lovingly taken from here http://lodev.org/cgtutor/raycasting.html
 #and here https://www.essentialmath.com/GDC2012/GDC2012_JMV_Rotations.pdf (see 2D vec rotations)
+#and here https://github.com/Mekire/pygame-raycasting-experiment
 
 import math
 import colors
 import pygame
+import os
 #import vector
 from player import Player
 from pygame.math import Vector2
 from side import Side
-from texture_loader import TextureLoader
+import texture_loader
 
 
 class Game(object):
@@ -62,10 +64,24 @@ class Game(object):
 
     fps = 0
 
-    texture_loader = TextureLoader("assets/textures")
-    TEXTURES = texture_loader.get_textures()
+    current_directory = os.path.dirname(os.path.realpath(__file__))
+    wall_texture_folder_path = os.path.join(current_directory, "assets/textures/surfaces")
+    WALL_TEXTURES = texture_loader.get_textures(wall_texture_folder_path)
 
     TEXTURE_WIDTH = 64
+    TEXTURE_HEIGHT = 64
+
+    def darken(self, surface):
+        "This method takes in a surface and drops its brightness in half"
+
+        #we create a new rectangle with the same dimensions as the texture
+        dark = pygame.Surface(surface.get_size())
+
+        #we set the brightness of this surface to 128/half (255 is max)
+        dark.set_alpha(128)
+
+        #Apply the darken mask to the original surface from its origin (x:0, y:0)
+        surface.blit(dark, (0, 0))
 
     def avoid_zero(self, value):
         """use this function to avoid zero if we risk a divide by zero expression."""
@@ -209,7 +225,7 @@ class Game(object):
             distance_delta_x = scaled_x.length()
             distance_delta_y = scaled_y.length()
 
-            perpWallDist = 0
+            perceptual_wall_distance = 0
 
             #what direction to step in x or y-direction (either +1 or -1)
             stepX = 0
@@ -294,53 +310,81 @@ class Game(object):
             if (side == Side.LeftOrRight):
                 distance_in_x = mapX - ray_origin.x #this difference is how far the ray has travelled in x before hitting a side wall.
                 one_or_zero = (1 - stepX) / 2 #if step = 1/positive x/right, make this 0. if step = -1/negative x/left make it 1. 
-                perpWallDist = (distance_in_x + one_or_zero) / ray_direction.x
+                perceptual_wall_distance = (distance_in_x + one_or_zero) / ray_direction.x
         
         
             else:
                 distance_in_y = mapY - ray_origin.y #this difference is how far the ray has travelled in y before hitting a wall.
                 one_or_zero = (1 - stepY) / 2 #if step = 1/positive y/up, make this 0. if step = -1/negative y/down make it 1.
-                perpWallDist = (distance_in_y + one_or_zero) / ray_direction.y
+                perceptual_wall_distance = (distance_in_y + one_or_zero) / ray_direction.y
 
-            perpWallDist = self.avoid_zero(perpWallDist)
+            perceptual_wall_distance = self.avoid_zero(perceptual_wall_distance)
 
 
             #Calculate height of line to draw on screen
             #we bring this into screen space by calculating as distance 1 (at the same point as the camera plane) = screenheight. Distance 2 = 1/2 screenheight. Distance 0.5 = 2 * screenheight.
             #This makes sure the further away we are the smaller the line is and the closer the taller the line is, making sure the screen is filled by objects in the same place as the camera.
-            lineHeight = int(self.SCREEN_HEIGHT / perpWallDist)
+            line_height = int(self.SCREEN_HEIGHT / perceptual_wall_distance)
 
             #calculate lowest and highest pixel to fill in current stripe
             #a start of a line can be through of as half the line up (-y) from the center of the screen in y (screen height /2).
 
-            drawStart = -lineHeight / 2 + self.HALF_SCREEN_HEIGHT
+            draw_start = -line_height / 2 + self.HALF_SCREEN_HEIGHT
 
             #a end of a line can be through of as half the line down (+y) from the center of the screen in y (screen height /2).
-            drawEnd = lineHeight / 2 + self.HALF_SCREEN_HEIGHT
+            draw_end = line_height / 2 + self.HALF_SCREEN_HEIGHT
 
             #clamp draw start and draw end - there is no point drawing off the top or bottom of the screen.
             #remember, we draw from top to bottom.
-            drawStart = max(drawStart, 0)
-            drawEnd = min(drawEnd, self.SCREEN_HEIGHT)
+            draw_start = max(draw_start, 0)
+            draw_end = min(draw_end, self.SCREEN_HEIGHT)
 
-            #choose wall color
-            mapColorIndex = self.MAP[mapX][mapY]
-            color = self.WALL_PALETTE[mapColorIndex]
 
             #get texture to use. -1 so we can start at index 0 of texxture array
             textureIndex = self.MAP[mapX][mapY] - 1
             textureIndex = max(0, textureIndex)
-            texture = self.TEXTURES[textureIndex]
+            texture = self.WALL_TEXTURES[textureIndex]
 
-            color = texture.get_at((1, 1))
+            #attempt tp calculate Y pos of texture BROKEN
+            line_height = draw_end - draw_start
 
             #give x and y sides different brightness
             if side == Side.TopOrBottom:
-                color = colors.halve_color(color)
+                #TODO half brightness of side textures?
+                pass
 
+            #where exactly the wall was hit in terms of a value between 0 and 1.
+            wall_x = 0 
+            if (side == Side.LeftOrRight):
+                 wall_x = ray_origin.y + perceptual_wall_distance * ray_direction.y;
+            else:
+                 wall_x = ray_origin.x + perceptual_wall_distance * ray_direction.x;
+            wall_x -= math.floor((wall_x));
 
-          #draw the pixels of the stripe as a vertical line
-            pygame.draw.line(self.SCREEN, color, (x, drawStart), (x, drawEnd))
+            #get which pixel in x from the texture we want to use
+            #it's too expensive to set each pixel directly so we
+            #map the line we want from the texture and draw that directly
+            #to the screens surface.
+
+            #figure out how many pixels across the texture to be in x
+            texture_x = int(wall_x * self.TEXTURE_WIDTH)
+
+            #get the part of the image we want to draw from the texture         
+            image_location = pygame.Rect(texture_x, 0, 1, self.TEXTURE_HEIGHT)
+            image_slice = texture.subsurface(image_location)
+
+            #figure out the position and size of the vertical line we want to draw on screen
+            scale_rect = pygame.Rect(x, draw_start, 1, line_height)
+
+            #put the area of the image we want into the space we want to put on screen
+            scaled = pygame.transform.scale(image_slice, scale_rect.size)
+
+            #draw the scaled line where we want to on the screen.
+            if (side == Side.LeftOrRight):
+                self.darken(scaled)
+            
+            self.SCREEN.blit(scaled, scale_rect)
+
 
         self.draw_ui(player)
 
