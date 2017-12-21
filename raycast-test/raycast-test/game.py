@@ -6,7 +6,6 @@ import math
 import colors
 import pygame
 import os
-#import vector
 from player import Player
 from pygame.math import Vector2
 from side import Side
@@ -31,7 +30,7 @@ class Game(object):
     MAP = (
             (1, 1, 1, 1, 1, 1, 1, 1, 1, 1),
             (1, 2, 0, 0, 0, 0, 0, 0, 0, 1),
-            (1, 0, 0, 0, 0, 0, 0, 0, 0, 1),
+            (1, 0, 0, 0, 0, 3, 0, 0, 0, 1),
             (1, 0, 0, 0, 0, 0, 0, 0, 0, 1),
             (1, 0, 0, 0, 2, 3, 0, 0, 0, 1),
             (1, 0, 0, 0, 5, 6, 0, 0, 0, 1),
@@ -345,8 +344,8 @@ class Game(object):
             textureIndex = max(0, textureIndex)
             texture = self.WALL_TEXTURES[textureIndex]
 
-            #attempt tp calculate Y pos of texture BROKEN
-            line_height = draw_end - draw_start
+            #attempt tp calculate Y pos of texture
+            texture_line_height = draw_end - draw_start
 
             #give x and y sides different brightness
             if side == Side.TopOrBottom:
@@ -356,10 +355,10 @@ class Game(object):
             #where exactly the wall was hit in terms of a value between 0 and 1.
             wall_x = 0 
             if (side == Side.LeftOrRight):
-                 wall_x = ray_origin.y + perceptual_wall_distance * ray_direction.y;
+                 wall_x = ray_origin.y + perceptual_wall_distance * ray_direction.y
             else:
-                 wall_x = ray_origin.x + perceptual_wall_distance * ray_direction.x;
-            wall_x -= math.floor((wall_x));
+                 wall_x = ray_origin.x + perceptual_wall_distance * ray_direction.x
+            wall_x -= math.floor((wall_x))
 
             #get which pixel in x from the texture we want to use
             #it's too expensive to set each pixel directly so we
@@ -369,12 +368,18 @@ class Game(object):
             #figure out how many pixels across the texture to be in x
             texture_x = int(wall_x * self.TEXTURE_WIDTH)
 
+            #this code makes sure the texture doesn't flip/invert
+            if(side == Side.LeftOrRight and ray_direction.x > 0):
+                 texture_x = self.TEXTURE_WIDTH - texture_x - 1
+            if(side == Side.TopOrBottom and ray_direction.y < 0):
+                 texture_x = self.TEXTURE_WIDTH - texture_x - 1
+
             #get the part of the image we want to draw from the texture         
             image_location = pygame.Rect(texture_x, 0, 1, self.TEXTURE_HEIGHT)
             image_slice = texture.subsurface(image_location)
 
             #figure out the position and size of the vertical line we want to draw on screen
-            scale_rect = pygame.Rect(x, draw_start, 1, line_height)
+            scale_rect = pygame.Rect(x, draw_start, 1, texture_line_height)
 
             #put the area of the image we want into the space we want to put on screen
             scaled = pygame.transform.scale(image_slice, scale_rect.size)
