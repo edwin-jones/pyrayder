@@ -352,7 +352,7 @@ class Game(object):
                 #TODO half brightness of side textures?
                 pass
 
-            #where exactly the wall was hit in terms of a value between 0 and 1.
+            #where exactly the wall was hit in terms of a value between 0 and 1. TODO HOW DOES THIS WORK?
             wall_x = 0 
             if (side == Side.LeftOrRight):
                  wall_x = ray_origin.y + perceptual_wall_distance * ray_direction.y
@@ -368,7 +368,7 @@ class Game(object):
             #figure out how many pixels across the texture to be in x
             texture_x = int(wall_x * self.TEXTURE_WIDTH)
 
-            #this code makes sure the texture doesn't flip/invert
+            #this code makes sure the texture doesn't flip/invert TODO HOW DOES THIS WORK?
             if(side == Side.LeftOrRight and ray_direction.x > 0):
                  texture_x = self.TEXTURE_WIDTH - texture_x - 1
             if(side == Side.TopOrBottom and ray_direction.y < 0):
