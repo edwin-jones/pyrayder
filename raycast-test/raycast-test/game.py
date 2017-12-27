@@ -2,13 +2,15 @@
 # and here https://www.essentialmath.com/GDC2012/GDC2012_JMV_Rotations.pdf (see 2D vec rotations)
 # and here https://github.com/Mekire/pygame-raycasting-experiment
 
+import os
 import math
 import colors
 import pygame
-import os
-from player import Player
+
 from pygame.math import Vector2
+from player import Player
 from side import Side
+
 import asset_loader
 
 
@@ -66,9 +68,6 @@ class Game(object):
     wall_texture_folder_path = os.path.join(
         current_directory, "assets/textures/surfaces")
     WALL_TEXTURES = asset_loader.get_textures(wall_texture_folder_path)
-
-    TEXTURE_WIDTH = 64
-    TEXTURE_HEIGHT = 64
 
     def darken(self, surface):
         "This method takes in a surface and drops its brightness in half"
@@ -376,16 +375,16 @@ class Game(object):
             # to the screens surface.
 
             # figure out how many pixels across the texture to be in x
-            texture_x = int(wall_x * self.TEXTURE_WIDTH)
+            texture_x = int(wall_x * int(texture.get_width()))
 
             # this code makes sure the texture doesn't flip/invert TODO HOW DOES THIS WORK?
             if(side == Side.LeftOrRight and ray_direction.x > 0):
-                texture_x = self.TEXTURE_WIDTH - texture_x - 1
+                texture_x = texture.get_width() - texture_x - 1
             if(side == Side.TopOrBottom and ray_direction.y < 0):
-                texture_x = self.TEXTURE_WIDTH - texture_x - 1
+                texture_x = texture.get_width() - texture_x - 1
 
             # get the part of the image we want to draw from the texture
-            image_location = pygame.Rect(texture_x, 0, 1, self.TEXTURE_HEIGHT)
+            image_location = pygame.Rect(texture_x, 0, 1, texture.get_height())
             image_slice = texture.subsurface(image_location)
 
             # figure out the position and size of the vertical line we want to draw on screen
