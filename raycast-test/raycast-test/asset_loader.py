@@ -1,9 +1,11 @@
-import pygame
+"""This is a helper module to load assets such as tectures etc."""
 import os
+import pygame
 
 
-"""A simple way to load game textures from a folder"""
 def get_textures(texture_folder):
+    """A simple way to load game textures from a folder"""
+
     textures = []
 
     for file in os.listdir(texture_folder):

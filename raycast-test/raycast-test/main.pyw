@@ -1,5 +1,6 @@
-from game import *
+"""This is the main entry point for the program"""
+from game import Game
 
-game = Game()
+GAME = Game()
 
-game.run()
+GAME.run()
