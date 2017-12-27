@@ -9,7 +9,7 @@ import os
 from player import Player
 from pygame.math import Vector2
 from side import Side
-import texture_loader
+import asset_loader
 
 
 class Game(object):
@@ -65,7 +65,7 @@ class Game(object):
 
     current_directory = os.path.dirname(os.path.realpath(__file__))
     wall_texture_folder_path = os.path.join(current_directory, "assets/textures/surfaces")
-    WALL_TEXTURES = texture_loader.get_textures(wall_texture_folder_path)
+    WALL_TEXTURES = asset_loader.get_textures(wall_texture_folder_path)
 
     TEXTURE_WIDTH = 64
     TEXTURE_HEIGHT = 64
