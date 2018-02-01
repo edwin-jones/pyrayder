@@ -15,14 +15,15 @@ import asset_loader
 
 class Renderer:
 
-    current_directory = os.path.dirname(os.path.realpath(__file__))
-    wall_texture_folder_path = os.path.join(
-        current_directory, "assets/textures/surfaces")
-
-    WALL_TEXTURES = asset_loader.get_textures(wall_texture_folder_path)
-
     def __init__(self):
         self.SCREEN = pygame.display.set_mode(settings.SCREEN_SIZE)
+
+        current_directory = os.path.dirname(os.path.realpath(__file__))
+        wall_texture_folder_path = os.path.join(
+            current_directory, "assets/textures/surfaces")
+
+        self.WALL_TEXTURES = asset_loader.get_textures(
+            wall_texture_folder_path)
 
     def avoid_zero(self, value):
         """use this function to avoid zero if we risk a divide by zero expression."""
