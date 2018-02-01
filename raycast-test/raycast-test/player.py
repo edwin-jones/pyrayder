@@ -1,7 +1,9 @@
 """This module contains definitions of vector objects"""
 
-class Player(object):
+
+class Player:
     """A basic player class"""
+
     def __init__(self, position, direction, camera_plane):
         self.position = position
         self.direction = direction
