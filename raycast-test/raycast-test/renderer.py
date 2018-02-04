@@ -1,6 +1,7 @@
 """This module defines the renderer object and related methods"""
 
 from side import Side
+from pygame.math import Vector2
 
 import side
 import settings
@@ -9,8 +10,13 @@ import colors
 import os
 import math
 
+
 import asset_loader
 
+class SpriteInfo:
+    def __init__(self, x_screen_pos, map_position):
+        self.x_screen_pos = x_screen_pos
+        self.map_position = map_position
 
 class Renderer:
 
@@ -223,7 +229,8 @@ class Renderer:
                 #we hit a sprite, draw it!
                 if map_tile > 10 and map_tile < 21 and draw_enemy is True:
                     draw_enemy = False
-                    sprites_to_draw_x_positions.append(x)
+                    sprite_info = SpriteInfo(x, Vector2(map_x, map_y))
+                    sprites_to_draw_x_positions.append(sprite_info)
 
                     
             # Calculate distance projected on camera direction (oblique distance will give fisheye effect!)
@@ -270,9 +277,6 @@ class Renderer:
             texture_index = max(0, texture_index)
             texture = self.WALL_TEXTURES[texture_index]
 
-            # attempt tp calculate Y pos of texture
-            texture_line_height = draw_end - draw_start
-
             # where exactly the wall was hit in terms of a value between 0 and 1. TODO HOW DOES THIS WORK?
             wall_x = 0
             if (side == Side.LeftOrRight):
@@ -286,12 +290,28 @@ class Renderer:
             # map the line we want from the texture and draw that directly
             # to the screens surface.
             texture_slice = self._get_texture_slice(ray_direction, wall_x, texture, side)
-            self._draw_wall_line(x, draw_start, texture_line_height, texture_slice, side)
+            self._draw_wall_line(x, draw_start, line_height, texture_slice, side)
 
-        for sprite_x_pos in sprites_to_draw_x_positions:
+        for sprite_info in sprites_to_draw_x_positions:
              # get the part of the image we want to draw from the texture
             sprite_texture = self.SPRITE_TEXTURES[0]
-            sprite_image_location = pygame.Rect(sprite_x_pos, 0, sprite_texture.get_width(), sprite_texture.get_height())
+            sprite_y_pos = settings.HALF_SCREEN_HEIGHT - (sprite_texture.get_height()/2)
+
+            distance_vector = player.position - sprite_info.map_position
+            distance = distance_vector.length()
+            print(distance)
+
+            sprite_height = int(settings.SCREEN_HEIGHT / self._avoid_zero(distance))
+
+            sprite_draw_start = (-sprite_height / 2) + settings.HALF_SCREEN_HEIGHT
+
+            # clamp draw start and draw end - there is no point drawing off the top or bottom of the screen.
+            # remember, we draw from top to bottom.
+            sprite_draw_start = max(sprite_draw_start, 0)
+
+            sprite_texture = pygame.transform.scale(sprite_texture, (sprite_height, sprite_height))
+
+            sprite_image_location = pygame.Rect(sprite_info.x_screen_pos, sprite_draw_start, 10, 10)
 
             self.SCREEN.blit(sprite_texture, sprite_image_location)
                 
