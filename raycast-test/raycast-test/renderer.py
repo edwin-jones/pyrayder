@@ -81,33 +81,32 @@ class Renderer:
                          (0, 0, settings.SCREEN_WIDTH, settings.SCREEN_HEIGHT / 2))
 
 
-    def _calculate_step(self, axis_distance, axis_origin, axis_map):
-                    # calculate step and initial sideDist
-            if axis_distance < 0:
+    def _draw_wall_line(self, x, ray_direction, wall_x, texture, side, draw_start, height):
+            # figure out how many pixels across the texture to be in x
+            texture_x = int(wall_x * int(texture.get_width()))
 
-                # a negative x means we are moving left
-                step = -1
+            # this code makes sure the texture doesn't flip/invert TODO HOW DOES THIS WORK?
+            if side == Side.LeftOrRight and ray_direction.x > 0:
+                texture_x = texture.get_width() - texture_x - 1
+            if side == Side.TopOrBottom and ray_direction.y < 0:
+                texture_x = texture.get_width() - texture_x - 1
 
-                # subtract current map square x cord from the total ray x to get the difference/distance in x from the ray origin to the left wall,
-                # as if we are moving right the rayPosition.x will be the greater value and we want an absolute/non negative value for the difference.
-                # this is the same as the ratio of how far the ray position is across the map grid square in x, 0 = 0% and 1 = 100%.
-                x_ratio = (ray_origin.x - map_x)
+            # get the part of the image we want to draw from the texture
+            image_location = pygame.Rect(texture_x, 0, 1, texture.get_height())
+            image_slice = texture.subsurface(image_location)
 
-                # multiply distance_delta by this ratio to get the true distance we need to go in the direction of the ray to hit the left wall.
-                distance_to_side_x = distance_delta_x * x_ratio
+            # figure out the position and size of the vertical line we want to draw on screen
+            scale_rect = pygame.Rect(x, draw_start, 1, height)
 
-            else:
+            # put the area of the image we want into the space we want to put on screen
+            scaled = pygame.transform.scale(image_slice, scale_rect.size)
 
-                # a positive x means we are moving right
-                step_x = 1
+            # draw the scaled line where we want to on the screen.
+            if (side == Side.LeftOrRight):
+                self._darken(scaled)
 
-                # subtract ray.x from the NEXT square's X co-ordinate to get the difference/distance in x from the ray origin to the right wall,
-                # as if we are moving right the  map x + 1 will be the greater value and we want an absolute/non negative value for the difference.
-                # this is the same as the ratio of how far the ray position is across the next map grid square in x, 0 = 0% and 1 = 100%.
-                x_ratio = (map_x + 1 - ray_origin.x)
+            self.SCREEN.blit(scaled, scale_rect)
 
-                # multiply distance_delta by this ratio to get the true distance we need to go in the direction of the ray to hit the right wall.
-                distance_to_side_x = distance_delta_x * x_ratio
 
     def _draw_walls(self, player):
         for x in range(0, settings.SCREEN_WIDTH):
@@ -270,30 +269,8 @@ class Renderer:
             # map the line we want from the texture and draw that directly
             # to the screens surface.
 
-            # figure out how many pixels across the texture to be in x
-            texture_x = int(wall_x * int(texture.get_width()))
+            self._draw_wall_line(x, ray_direction, wall_x, texture, side, draw_start, texture_line_height)
 
-            # this code makes sure the texture doesn't flip/invert TODO HOW DOES THIS WORK?
-            if side == Side.LeftOrRight and ray_direction.x > 0:
-                texture_x = texture.get_width() - texture_x - 1
-            if side == Side.TopOrBottom and ray_direction.y < 0:
-                texture_x = texture.get_width() - texture_x - 1
-
-            # get the part of the image we want to draw from the texture
-            image_location = pygame.Rect(texture_x, 0, 1, texture.get_height())
-            image_slice = texture.subsurface(image_location)
-
-            # figure out the position and size of the vertical line we want to draw on screen
-            scale_rect = pygame.Rect(x, draw_start, 1, texture_line_height)
-
-            # put the area of the image we want into the space we want to put on screen
-            scaled = pygame.transform.scale(image_slice, scale_rect.size)
-
-            # draw the scaled line where we want to on the screen.
-            if (side == Side.LeftOrRight):
-                self._darken(scaled)
-
-            self.SCREEN.blit(scaled, scale_rect)
 
     def render(self, player, fps):
         """This method draws everything to the screen"""
