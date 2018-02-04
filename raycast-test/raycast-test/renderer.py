@@ -81,7 +81,20 @@ class Renderer:
                          (0, 0, settings.SCREEN_WIDTH, settings.SCREEN_HEIGHT / 2))
 
 
-    def _draw_wall_line(self, x, ray_direction, wall_x, texture, side, draw_start, height):
+    def _draw_wall_line(self, x, start, height, image_slice, side):
+        # figure out the position and size of the vertical line we want to draw on screen
+        scale_rect = pygame.Rect(x, start, 1, height)
+
+        # put the area of the image we want into the space we want to put on screen
+        scaled = pygame.transform.scale(image_slice, scale_rect.size)
+
+        # draw the scaled line where we want to on the screen.
+        if (side == Side.LeftOrRight):
+            self._darken(scaled)
+
+        self.SCREEN.blit(scaled, scale_rect)
+
+    def _get_texture_slice(self, ray_direction, wall_x, texture, side):
             # figure out how many pixels across the texture to be in x
             texture_x = int(wall_x * int(texture.get_width()))
 
@@ -95,17 +108,7 @@ class Renderer:
             image_location = pygame.Rect(texture_x, 0, 1, texture.get_height())
             image_slice = texture.subsurface(image_location)
 
-            # figure out the position and size of the vertical line we want to draw on screen
-            scale_rect = pygame.Rect(x, draw_start, 1, height)
-
-            # put the area of the image we want into the space we want to put on screen
-            scaled = pygame.transform.scale(image_slice, scale_rect.size)
-
-            # draw the scaled line where we want to on the screen.
-            if (side == Side.LeftOrRight):
-                self._darken(scaled)
-
-            self.SCREEN.blit(scaled, scale_rect)
+            return image_slice
 
 
     def _draw_walls(self, player):
@@ -268,8 +271,8 @@ class Renderer:
             # it's too expensive to set each pixel directly so we
             # map the line we want from the texture and draw that directly
             # to the screens surface.
-
-            self._draw_wall_line(x, ray_direction, wall_x, texture, side, draw_start, texture_line_height)
+            texture_slice = self._get_texture_slice(ray_direction, wall_x, texture, side)
+            self._draw_wall_line(x, draw_start, texture_line_height, texture_slice, side)
 
 
     def render(self, player, fps):
