@@ -21,14 +21,14 @@ class Renderer:
         wall_texture_folder_path = os.path.join(
             current_directory, "assets/textures/surfaces")
         
-        enemy_texture_folder_path = os.path.join(
+        sprite_texture_folder_path = os.path.join(
             current_directory, "assets/textures/enemies")
 
         self.WALL_TEXTURES = asset_loader.get_textures(
             wall_texture_folder_path)
         
-        self.ENEMY_TEXTURES = asset_loader.get_textures(
-            enemy_texture_folder_path)
+        self.SPRITE_TEXTURES = asset_loader.get_textures(
+            sprite_texture_folder_path)
 
 
     def _avoid_zero(self, value):
@@ -87,7 +87,7 @@ class Renderer:
                          (0, 0, settings.SCREEN_WIDTH, settings.SCREEN_HEIGHT / 2))
 
 
-    def _draw_wall_line(self, x, start, height, image_slice, side):
+    def _draw_wall_line(self, x, start, height, image_slice, side=Side.TopOrBottom):
         # figure out the position and size of the vertical line we want to draw on screen
         scale_rect = pygame.Rect(x, start, 1, height)
 
@@ -118,6 +118,10 @@ class Renderer:
 
 
     def _draw_walls(self, player):
+
+        sprites_to_draw_x_positions = []
+
+        draw_enemy = True
         for x in range(0, settings.SCREEN_WIDTH):
 
             # calculate ray position and direction
@@ -182,6 +186,8 @@ class Renderer:
             hit = False  # was there a wall hit?
             side = Side.LeftOrRight  # was a NS or a EW wall hit?
 
+            
+
             # perform DDA
             while not hit:
 
@@ -213,7 +219,13 @@ class Renderer:
                 map_tile = settings.MAP[map_x][map_y]
                 if map_tile > 0 and map_tile < 10:
                     hit = True
+                
+                #we hit a sprite, draw it!
+                if map_tile > 10 and map_tile < 21 and draw_enemy is True:
+                    draw_enemy = False
+                    sprites_to_draw_x_positions.append(x)
 
+                    
             # Calculate distance projected on camera direction (oblique distance will give fisheye effect!)
             if side == Side.LeftOrRight:
                 # this difference is how far the ray has travelled in x before hitting a side wall.
@@ -253,18 +265,13 @@ class Renderer:
             draw_start = max(draw_start, 0)
             draw_end = min(draw_end, settings.SCREEN_HEIGHT)
 
-            # get texture to use. -1 so we can start at index 0 of texxture array
+            # get texture to use. -1 so we can start at index 0 of texture array
             texture_index = settings.MAP[map_x][map_y] - 1
             texture_index = max(0, texture_index)
             texture = self.WALL_TEXTURES[texture_index]
 
             # attempt tp calculate Y pos of texture
             texture_line_height = draw_end - draw_start
-
-            # give x and y sides different brightness
-            if side == Side.TopOrBottom:
-                # TODO half brightness of side textures?
-                pass
 
             # where exactly the wall was hit in terms of a value between 0 and 1. TODO HOW DOES THIS WORK?
             wall_x = 0
@@ -281,6 +288,13 @@ class Renderer:
             texture_slice = self._get_texture_slice(ray_direction, wall_x, texture, side)
             self._draw_wall_line(x, draw_start, texture_line_height, texture_slice, side)
 
+        for sprite_x_pos in sprites_to_draw_x_positions:
+             # get the part of the image we want to draw from the texture
+            sprite_texture = self.SPRITE_TEXTURES[0]
+            sprite_image_location = pygame.Rect(sprite_x_pos, 0, sprite_texture.get_width(), sprite_texture.get_height())
+
+            self.SCREEN.blit(sprite_texture, sprite_image_location)
+                
 
     def render(self, player, fps):
         """This method draws everything to the screen"""
