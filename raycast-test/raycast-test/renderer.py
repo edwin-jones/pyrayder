@@ -51,12 +51,12 @@ class Renderer:
             self._draw_debug(player, fps)
 
 
-    def _draw_debug_text(self, font, text, y_pos):
+    def _draw_debug_text(self, font, text, x_pos, y_pos):
 
         text = font.render(text, True, colors.YELLOW)
 
         textrect = text.get_rect()
-        textrect.centerx = 150
+        textrect.centerx = x_pos
         textrect.centery = y_pos
 
         self.SCREEN.blit(text, textrect)
@@ -65,13 +65,13 @@ class Renderer:
     def _draw_debug(self, player, fps):
         basicfont = pygame.font.SysFont(None, 48)
 
-        fps_text = 'fps: {fps}'
-        player_x_text = 'x: {:.2f}'.format(player.position.x)
-        player_y_text = 'y: {:.2f}'.format(player.position.y)
+        fps_text = f'fps: {fps}'
+        player_x_text = f'x: {player.position.x:.2f}'
+        player_y_text = f'y: {player.position.y:.2f}'
 
-        self._draw_debug_text(basicfont, fps_text, 20)
-        self._draw_debug_text(basicfont, player_x_text, 60)
-        self._draw_debug_text(basicfont, player_y_text, 90)
+        self._draw_debug_text(basicfont, fps_text, 150, 20)
+        self._draw_debug_text(basicfont, player_x_text, 150, 60)
+        self._draw_debug_text(basicfont, player_y_text, 150, 90)
 
 
     def render(self, player, fps):
