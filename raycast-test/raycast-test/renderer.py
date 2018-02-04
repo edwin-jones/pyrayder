@@ -112,7 +112,7 @@ class Renderer:
     def _draw_walls(self, player):
         for x in range(0, settings.SCREEN_WIDTH):
 
-             # calculate ray position and direction
+            # calculate ray position and direction
 
             # what percentage of the screen with is the current x value.
             x_ratio = x / settings.SCREEN_WIDTH
@@ -158,40 +158,21 @@ class Renderer:
             step_x = -1 if ray_direction.x < 0 else 1
             step_y = -1 if ray_direction.y < 0 else 1
 
+            # subtract current map square x cord from the total ray x to get the difference/distance in x from the ray origin to the left wall,
+            # as if we are moving right the rayPosition.x will be the greater value and we want an absolute/non negative value for the difference.
+            # this is the same as the ratio of how far the ray position is across the map grid square in x, 0 = 0% and 1 = 100%.
+            # OR subtract ray.x from the NEXT square's X co-ordinate to get the difference/distance in x from the ray origin to the right wall,
+            # as if we are moving right the  map x + 1 will be the greater value and we want an absolute/non negative value for the difference.
+            # this is the same as the ratio of how far the ray position is across the next map grid square in x, 0 = 0% and 1 = 100%.
+            x_ratio = (ray_origin.x - map_x) if ray_direction.x < 0 else (map_x + 1 - ray_origin.x)
+            y_ratio = (ray_origin.y - map_y) if ray_direction.y < 0 else (map_y + 1 - ray_origin.y)
+
+            # multiply distance_delta by this ratio to get the true distance we need to go in the direction of the ray to hit the wall.
+            distance_to_side_x = distance_delta_x * x_ratio
+            distance_to_side_y = distance_delta_y * y_ratio
+
             hit = False  # was there a wall hit?
             side = Side.LeftOrRight  # was a NS or a EW wall hit?
-
-            # calculate step and initial sideDist
-            if ray_direction.x < 0:
-
-                # subtract current map square x cord from the total ray x to get the difference/distance in x from the ray origin to the left wall,
-                # as if we are moving right the rayPosition.x will be the greater value and we want an absolute/non negative value for the difference.
-                # this is the same as the ratio of how far the ray position is across the map grid square in x, 0 = 0% and 1 = 100%.
-                x_ratio = (ray_origin.x - map_x)
-
-                # multiply distance_delta by this ratio to get the true distance we need to go in the direction of the ray to hit the left wall.
-                distance_to_side_x = distance_delta_x * x_ratio
-
-            else:
-
-                # subtract ray.x from the NEXT square's X co-ordinate to get the difference/distance in x from the ray origin to the right wall,
-                # as if we are moving right the  map x + 1 will be the greater value and we want an absolute/non negative value for the difference.
-                # this is the same as the ratio of how far the ray position is across the next map grid square in x, 0 = 0% and 1 = 100%.
-                x_ratio = (map_x + 1 - ray_origin.x)
-
-                # multiply distance_delta by this ratio to get the true distance we need to go in the direction of the ray to hit the right wall.
-                distance_to_side_x = distance_delta_x * x_ratio
-
-            # the same principles as above apply for  distance checks for the distance for the ray to go to hit the square below and above.
-            if ray_direction.y < 0:
-
-                y_ratio = (ray_origin.y - map_y)
-                distance_to_side_y = distance_delta_y * y_ratio
-
-            else:
-
-                y_ratio = (map_y + 1 - ray_origin.y)
-                distance_to_side_y = distance_delta_y * y_ratio
 
             # perform DDA
             while not hit:
