@@ -81,6 +81,34 @@ class Renderer:
                          (0, 0, settings.SCREEN_WIDTH, settings.SCREEN_HEIGHT / 2))
 
 
+    def _calculate_step(self, axis_distance, axis_origin, axis_map):
+                    # calculate step and initial sideDist
+            if axis_distance < 0:
+
+                # a negative x means we are moving left
+                step = -1
+
+                # subtract current map square x cord from the total ray x to get the difference/distance in x from the ray origin to the left wall,
+                # as if we are moving right the rayPosition.x will be the greater value and we want an absolute/non negative value for the difference.
+                # this is the same as the ratio of how far the ray position is across the map grid square in x, 0 = 0% and 1 = 100%.
+                x_ratio = (ray_origin.x - map_x)
+
+                # multiply distance_delta by this ratio to get the true distance we need to go in the direction of the ray to hit the left wall.
+                distance_to_side_x = distance_delta_x * x_ratio
+
+            else:
+
+                # a positive x means we are moving right
+                step_x = 1
+
+                # subtract ray.x from the NEXT square's X co-ordinate to get the difference/distance in x from the ray origin to the right wall,
+                # as if we are moving right the  map x + 1 will be the greater value and we want an absolute/non negative value for the difference.
+                # this is the same as the ratio of how far the ray position is across the next map grid square in x, 0 = 0% and 1 = 100%.
+                x_ratio = (map_x + 1 - ray_origin.x)
+
+                # multiply distance_delta by this ratio to get the true distance we need to go in the direction of the ray to hit the right wall.
+                distance_to_side_x = distance_delta_x * x_ratio
+
     def _draw_walls(self, player):
         for x in range(0, settings.SCREEN_WIDTH):
 
@@ -127,17 +155,14 @@ class Renderer:
             perceptual_wall_distance = 0
 
             # what direction to step in x or y-direction (either +1 or -1)
-            step_x = 0
-            step_y = 0
+            step_x = -1 if ray_direction.x < 0 else 1
+            step_y = -1 if ray_direction.y < 0 else 1
 
             hit = False  # was there a wall hit?
             side = Side.LeftOrRight  # was a NS or a EW wall hit?
 
             # calculate step and initial sideDist
             if ray_direction.x < 0:
-
-                # a negative x means we are moving left
-                step_x = -1
 
                 # subtract current map square x cord from the total ray x to get the difference/distance in x from the ray origin to the left wall,
                 # as if we are moving right the rayPosition.x will be the greater value and we want an absolute/non negative value for the difference.
@@ -148,9 +173,6 @@ class Renderer:
                 distance_to_side_x = distance_delta_x * x_ratio
 
             else:
-
-                # a positive x means we are moving right
-                step_x = 1
 
                 # subtract ray.x from the NEXT square's X co-ordinate to get the difference/distance in x from the ray origin to the right wall,
                 # as if we are moving right the  map x + 1 will be the greater value and we want an absolute/non negative value for the difference.
@@ -163,14 +185,11 @@ class Renderer:
             # the same principles as above apply for  distance checks for the distance for the ray to go to hit the square below and above.
             if ray_direction.y < 0:
 
-                # a negative y means mean we are going down
-                step_y = -1
                 y_ratio = (ray_origin.y - map_y)
                 distance_to_side_y = distance_delta_y * y_ratio
 
             else:
-                # a positive y means mean we are going up
-                step_y = 1
+
                 y_ratio = (map_y + 1 - ray_origin.y)
                 distance_to_side_y = distance_delta_y * y_ratio
 
