@@ -20,9 +20,15 @@ class Renderer:
         current_directory = os.path.dirname(os.path.realpath(__file__))
         wall_texture_folder_path = os.path.join(
             current_directory, "assets/textures/surfaces")
+        
+        enemy_texture_folder_path = os.path.join(
+            current_directory, "assets/textures/enemies")
 
         self.WALL_TEXTURES = asset_loader.get_textures(
             wall_texture_folder_path)
+        
+        self.ENEMY_TEXTURES = asset_loader.get_textures(
+            enemy_texture_folder_path)
 
 
     def _avoid_zero(self, value):
@@ -204,7 +210,8 @@ class Renderer:
                     side = Side.TopOrBottom
 
                 # Check if ray has hit a wall
-                if settings.MAP[map_x][map_y] > 0:
+                map_tile = settings.MAP[map_x][map_y]
+                if map_tile > 0 and map_tile < 10:
                     hit = True
 
             # Calculate distance projected on camera direction (oblique distance will give fisheye effect!)
