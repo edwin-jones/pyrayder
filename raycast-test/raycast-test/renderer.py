@@ -74,13 +74,14 @@ class Renderer:
         self._draw_debug_text(basicfont, player_y_text, 150, 90)
 
 
-    def render(self, player, fps):
-        """This method draws everything to the screen"""
+    def _draw_ceiling_and_floor(self):
         # fill screen with back buffer color and then draw the ceiling/sky.
         self.SCREEN.fill(colors.FLOOR_GRAY)
         pygame.draw.rect(self.SCREEN, colors.CEILING_GRAY,
                          (0, 0, settings.SCREEN_WIDTH, settings.SCREEN_HEIGHT / 2))
 
+
+    def _draw_walls(self, player):
         for x in range(0, settings.SCREEN_WIDTH):
 
              # calculate ray position and direction
@@ -294,6 +295,10 @@ class Renderer:
 
             self.SCREEN.blit(scaled, scale_rect)
 
+    def render(self, player, fps):
+        """This method draws everything to the screen"""
+        self._draw_ceiling_and_floor()
+        self._draw_walls(player)
         self._draw_ui(player, fps)
 
         # Go ahead and update the screen with what we've drawn.
