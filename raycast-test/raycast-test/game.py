@@ -7,10 +7,7 @@ import pygame
 import settings
 
 from pygame.math import Vector2
-from player import Player
 from side import Side
-from renderer import Renderer
-
 
 class Game:
     """primary game engine"""
@@ -18,6 +15,11 @@ class Game:
     """To rotate a vector, multiply it with the rotation matrix
     [ cos(a) -sin(a) ]
     [ sin(a)  cos(a) ]"""
+
+    def __init__(self, renderer, player):
+        self.renderer = renderer
+        self.player = player
+
 
     def handle_input(self, player):
         """This function handles control input for this program"""
@@ -97,19 +99,14 @@ class Game:
         """Run the game with this method"""
         pygame.init()
 
-        player = Player(settings.PLAYER_START_POSITION,
-                        settings.PLAYER_START_DIRECTION, settings.PLAYER_START_CAMERA_PLANE)
-
         clock = pygame.time.Clock()
 
         fps = 0
 
-        renderer = Renderer()
-
         while self.running:
 
-            self.simulate(player)
-            renderer.render(player, fps)
+            self.simulate(self.player)
+            self.renderer.render(self.player, fps)
 
             # delay until next frame.
             clock.tick(settings.TARGET_FPS)

@@ -1,6 +1,5 @@
 """This module defines the renderer object and related methods"""
 
-from player import Player
 from side import Side
 
 import side
@@ -25,14 +24,16 @@ class Renderer:
         self.WALL_TEXTURES = asset_loader.get_textures(
             wall_texture_folder_path)
 
-    def avoid_zero(self, value):
+
+    def _avoid_zero(self, value):
         """use this function to avoid zero if we risk a divide by zero expression."""
         if value == 0:
             return 0.000001
         else:
             return value
 
-    def darken(self, surface):
+
+    def _darken(self, surface):
         "This method takes in a surface and drops its brightness in half"
 
         # we create a new rectangle with the same dimensions as the texture
@@ -44,32 +45,34 @@ class Renderer:
         # Apply the darken mask to the original surface from its origin (x:0, y:0)
         surface.blit(dark, (0, 0))
 
-    def draw_ui(self, player, fps):
+
+    def _draw_ui(self, player, fps):
         if(__debug__):
-            self.draw_debug(player, fps)
+            self._draw_debug(player, fps)
 
-    def draw_debug(self, player, fps):
+
+    def _draw_debug_text(self, font, text, y_pos):
+
+        text = font.render(text, True, colors.YELLOW)
+
+        textrect = text.get_rect()
+        textrect.centerx = 150
+        textrect.centery = y_pos
+
+        self.SCREEN.blit(text, textrect)
+
+
+    def _draw_debug(self, player, fps):
         basicfont = pygame.font.SysFont(None, 48)
-        text = basicfont.render('fps: {}'.format(
-            fps), True, colors.YELLOW)
-        textrect = text.get_rect()
-        textrect.centerx = 150
-        textrect.centery = 20
-        self.SCREEN.blit(text, textrect)
 
-        text = basicfont.render('x: {:.2f}'.format(
-            player.position.x), True, colors.YELLOW)
-        textrect = text.get_rect()
-        textrect.centerx = 150
-        textrect.centery = 60
-        self.SCREEN.blit(text, textrect)
+        fps_text = 'fps: {fps}'
+        player_x_text = 'x: {:.2f}'.format(player.position.x)
+        player_y_text = 'y: {:.2f}'.format(player.position.y)
 
-        text = basicfont.render('y: {:.2f}'.format(
-            player.position.y), True, colors.YELLOW)
-        textrect = text.get_rect()
-        textrect.centerx = 150
-        textrect.centery = 90
-        self.SCREEN.blit(text, textrect)
+        self._draw_debug_text(basicfont, fps_text, 20)
+        self._draw_debug_text(basicfont, player_x_text, 60)
+        self._draw_debug_text(basicfont, player_y_text, 90)
+
 
     def render(self, player, fps):
         """This method draws everything to the screen"""
@@ -80,7 +83,7 @@ class Renderer:
 
         for x in range(0, settings.SCREEN_WIDTH):
 
-                   # calculate ray position and direction
+             # calculate ray position and direction
 
             # what percentage of the screen with is the current x value.
             x_ratio = x / settings.SCREEN_WIDTH
@@ -105,8 +108,8 @@ class Renderer:
 
             # calculate how the ratios of 1 to the x and y components
             # that is what number do you need to multiply x or y by to turn them into 1.
-            x_ratio = 1 / self.avoid_zero(ray_direction.x)
-            y_ratio = 1 / self.avoid_zero(ray_direction.y)
+            x_ratio = 1 / self._avoid_zero(ray_direction.x)
+            y_ratio = 1 / self._avoid_zero(ray_direction.y)
 
             # create vectors for where x/y has length 1 using these multipliers.
             scaled_x = ray_direction * x_ratio
@@ -218,7 +221,7 @@ class Renderer:
                 perceptual_wall_distance = (
                     distance_in_y + one_or_zero) / ray_direction.y
 
-            perceptual_wall_distance = self.avoid_zero(
+            perceptual_wall_distance = self._avoid_zero(
                 perceptual_wall_distance)
 
             # Calculate height of line to draw on screen
@@ -287,11 +290,11 @@ class Renderer:
 
             # draw the scaled line where we want to on the screen.
             if (side == Side.LeftOrRight):
-                self.darken(scaled)
+                self._darken(scaled)
 
             self.SCREEN.blit(scaled, scale_rect)
 
-        self.draw_ui(player, fps)
+        self._draw_ui(player, fps)
 
         # Go ahead and update the screen with what we've drawn.
         # This MUST happen after all the other drawing commands.
