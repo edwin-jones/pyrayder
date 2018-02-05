@@ -292,26 +292,45 @@ class Renderer:
             texture_slice = self._get_texture_slice(ray_direction, wall_x, texture, side)
             self._draw_wall_line(x, draw_start, line_height, texture_slice, side)
 
-        for sprite_info in sprites_to_draw_x_positions:
-             # get the part of the image we want to draw from the texture
-            sprite_texture = self.SPRITE_TEXTURES[0]
-            sprite_y_pos = settings.HALF_SCREEN_HEIGHT - (sprite_texture.get_height()/2)
+        #SPRITE TEST
+        # get the part of the image we want to draw from the texture
+        sprite_texture = self.SPRITE_TEXTURES[0]
+        sprite_y_pos = settings.HALF_SCREEN_HEIGHT - (sprite_texture.get_height()/2)
 
-            distance_vector = player.position - sprite_info.map_position
-            distance = distance_vector.length()
-            print(distance)
+        sprite_pos = Vector2(3.5, 6.5)
 
-            sprite_height = int(settings.SCREEN_HEIGHT / self._avoid_zero(distance))
+        distance_vector = sprite_pos - player.position
 
-            sprite_draw_start = (-sprite_height / 2) + settings.HALF_SCREEN_HEIGHT
+        distance = distance_vector.length()
+        
+        sprite_angle = math.atan2(distance_vector.y, distance_vector.x)
+        player_angle = math.atan2(player.direction.y, player.direction.x)
 
-            # clamp draw start and draw end - there is no point drawing off the top or bottom of the screen.
-            # remember, we draw from top to bottom.
-            sprite_draw_start = max(sprite_draw_start, 0)
+        difference = sprite_angle - player_angle
 
-            sprite_texture = pygame.transform.scale(sprite_texture, (sprite_height, sprite_height))
+        difference = -difference
 
-            sprite_image_location = pygame.Rect(sprite_info.x_screen_pos, sprite_draw_start, 10, 10)
+        #ignore sprites behind us (66 degree fov in radians)
+        if(math.fabs(difference) > (1.15192)):
+            return
+
+        x_test = math.tan(difference) * distance
+
+        sprite_height = int(settings.SCREEN_HEIGHT / self._avoid_zero(distance))
+
+        x_test = (settings.SCREEN_WIDTH/2 + x_test - (sprite_height / 2)/2)
+
+        sprite_draw_start = (-sprite_height / 2) + settings.HALF_SCREEN_HEIGHT
+
+        # clamp draw start and draw end - there is no point drawing off the top or bottom of the screen.
+        # remember, we draw from top to bottom.
+        sprite_draw_start = max(sprite_draw_start, 0)
+
+        sprite_texture = pygame.transform.scale(sprite_texture, (sprite_height, sprite_height))
+
+        if(x_test > 0 and x_test < settings.SCREEN_WIDTH):
+            print(x_test)
+            sprite_image_location = pygame.Rect(x_test, 0, 10, 10)
 
             self.SCREEN.blit(sprite_texture, sprite_image_location)
                 
