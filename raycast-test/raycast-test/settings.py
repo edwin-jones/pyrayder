@@ -6,7 +6,7 @@ import colors
 from pygame.math import Vector2
 
 
-TARGET_FPS = 60
+TARGET_FPS = 30
 
 # flip grid 90 left for 'real' map. +y is up, +x is right.
 # 0 nothing

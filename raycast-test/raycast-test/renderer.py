@@ -303,22 +303,32 @@ class Renderer:
 
         distance = distance_vector.length()
         
-        sprite_angle = math.atan2(distance_vector.y, distance_vector.x)
-        player_angle = math.atan2(player.direction.y, player.direction.x)
+        theta = math.atan2(player.direction.y, player.direction.x);  #Find angle between player and sprite
+        theta = theta * 57.2958 #Convert to degrees
+        if (theta < 0):
+	        theta+= 360;  ## Make sure its in proper range
 
-        difference = sprite_angle - player_angle
+        print(theta)
 
-        difference = -difference
+        thetaTemp = math.atan2(distance_vector.y, distance_vector.x);  #Find angle between player and sprite
+        thetaTemp = thetaTemp * 57.2958 #Convert to degrees
+        if (thetaTemp < 0):
+	        thetaTemp += 360;  ## Make sure its in proper range
+        
+        fov = 66
+        half_fov = fov / 2
 
-        #ignore sprites behind us (66 degree fov in radians)
-        if(math.fabs(difference) > (1.15192)):
-            return
-
-        x_test = math.tan(difference) * distance
+        # Wrap things around if needed
+        yTmp = theta + half_fov  - thetaTemp  #Theta + half_fov  = angle of ray that generates leftmost collum of the screen
+        if (thetaTemp > 270 and theta < 90):
+            yTmp = theta + half_fov  - thetaTemp + 360
+        if (theta > 270 and thetaTemp < 90):
+            yTmp = theta + half_fov  - thetaTemp - 360
+            
+        #Compute the screen x coordinate
+        xTmp = yTmp * settings.SCREEN_WIDTH / fov
 
         sprite_height = int(settings.SCREEN_HEIGHT / self._avoid_zero(distance))
-
-        x_test = (settings.SCREEN_WIDTH/2 + x_test - (sprite_height / 2)/2)
 
         sprite_draw_start = (-sprite_height / 2) + settings.HALF_SCREEN_HEIGHT
 
@@ -328,11 +338,9 @@ class Renderer:
 
         sprite_texture = pygame.transform.scale(sprite_texture, (sprite_height, sprite_height))
 
-        if(x_test > 0 and x_test < settings.SCREEN_WIDTH):
-            print(x_test)
-            sprite_image_location = pygame.Rect(x_test, 0, 10, 10)
+        sprite_image_location = pygame.Rect(xTmp, 0, 10, 10)
 
-            self.SCREEN.blit(sprite_texture, sprite_image_location)
+        self.SCREEN.blit(sprite_texture, sprite_image_location)
                 
 
     def render(self, player, fps):
