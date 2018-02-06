@@ -13,10 +13,12 @@ import math
 
 import asset_loader
 
+
 class SpriteInfo:
     def __init__(self, sprite_index, map_position):
         self.sprite_index = sprite_index
         self.map_position = map_position
+
 
 class Renderer:
 
@@ -26,16 +28,15 @@ class Renderer:
         current_directory = os.path.dirname(os.path.realpath(__file__))
         wall_texture_folder_path = os.path.join(
             current_directory, "assets/textures/surfaces")
-        
+
         sprite_texture_folder_path = os.path.join(
             current_directory, "assets/textures/enemies")
 
         self.WALL_TEXTURES = asset_loader.get_textures(
             wall_texture_folder_path)
-        
+
         self.SPRITE_TEXTURES = asset_loader.get_textures(
             sprite_texture_folder_path)
-
 
     def _avoid_zero(self, value):
         """use this function to avoid zero if we risk a divide by zero expression."""
@@ -43,7 +44,6 @@ class Renderer:
             return 0.000001
         else:
             return value
-
 
     def _darken(self, surface):
         "This method takes in a surface and drops its brightness in half"
@@ -57,11 +57,9 @@ class Renderer:
         # Apply the darken mask to the original surface from its origin (x:0, y:0)
         surface.blit(dark, (0, 0))
 
-
     def _draw_ui(self, player, fps):
         if(__debug__):
             self._draw_debug(player, fps)
-
 
     def _draw_debug_text(self, font, text, x_pos, y_pos):
 
@@ -72,7 +70,6 @@ class Renderer:
         textrect.centery = y_pos
 
         self.SCREEN.blit(text, textrect)
-
 
     def _draw_debug(self, player, fps):
         basicfont = pygame.font.SysFont(None, 48)
@@ -85,13 +82,11 @@ class Renderer:
         self._draw_debug_text(basicfont, player_x_text, 150, 60)
         self._draw_debug_text(basicfont, player_y_text, 150, 90)
 
-
     def _draw_ceiling_and_floor(self):
         # fill screen with back buffer color and then draw the ceiling/sky.
         self.SCREEN.fill(colors.FLOOR_GRAY)
         pygame.draw.rect(self.SCREEN, colors.CEILING_GRAY,
                          (0, 0, settings.SCREEN_WIDTH, settings.SCREEN_HEIGHT / 2))
-
 
     def _draw_wall_line(self, x, start, height, image_slice, side=Side.TopOrBottom):
         # figure out the position and size of the vertical line we want to draw on screen
@@ -108,20 +103,19 @@ class Renderer:
 
     def _get_texture_slice(self, ray_direction, wall_x, texture, side):
             # figure out how many pixels across the texture to be in x
-            texture_x = int(wall_x * int(texture.get_width()))
+        texture_x = int(wall_x * int(texture.get_width()))
 
-            # this code makes sure the texture doesn't flip/invert TODO HOW DOES THIS WORK?
-            if side == Side.LeftOrRight and ray_direction.x > 0:
-                texture_x = texture.get_width() - texture_x - 1
-            if side == Side.TopOrBottom and ray_direction.y < 0:
-                texture_x = texture.get_width() - texture_x - 1
+        # this code makes sure the texture doesn't flip/invert TODO HOW DOES THIS WORK?
+        if side == Side.LeftOrRight and ray_direction.x > 0:
+            texture_x = texture.get_width() - texture_x - 1
+        if side == Side.TopOrBottom and ray_direction.y < 0:
+            texture_x = texture.get_width() - texture_x - 1
 
-            # get the part of the image we want to draw from the texture
-            image_location = pygame.Rect(texture_x, 0, 1, texture.get_height())
-            image_slice = texture.subsurface(image_location)
+        # get the part of the image we want to draw from the texture
+        image_location = pygame.Rect(texture_x, 0, 1, texture.get_height())
+        image_slice = texture.subsurface(image_location)
 
-            return image_slice
-
+        return image_slice
 
     def _draw_walls(self, player):
         for x in range(0, settings.SCREEN_WIDTH):
@@ -178,8 +172,10 @@ class Renderer:
             # OR subtract ray.x from the NEXT square's X co-ordinate to get the difference/distance in x from the ray origin to the right wall,
             # as if we are moving right the  map x + 1 will be the greater value and we want an absolute/non negative value for the difference.
             # this is the same as the ratio of how far the ray position is across the next map grid square in x, 0 = 0% and 1 = 100%.
-            x_ratio = (ray_origin.x - map_x) if ray_direction.x < 0 else (map_x + 1 - ray_origin.x)
-            y_ratio = (ray_origin.y - map_y) if ray_direction.y < 0 else (map_y + 1 - ray_origin.y)
+            x_ratio = (
+                ray_origin.x - map_x) if ray_direction.x < 0 else (map_x + 1 - ray_origin.x)
+            y_ratio = (
+                ray_origin.y - map_y) if ray_direction.y < 0 else (map_y + 1 - ray_origin.y)
 
             # multiply distance_delta by this ratio to get the true distance we need to go in the direction of the ray to hit the wall.
             distance_to_side_x = distance_delta_x * x_ratio
@@ -187,8 +183,6 @@ class Renderer:
 
             hit = False  # was there a wall hit?
             side = Side.LeftOrRight  # was a NS or a EW wall hit?
-
-            
 
             # perform DDA
             while not hit:
@@ -222,7 +216,6 @@ class Renderer:
                 if map_tile > 0 and map_tile < 10:
                     hit = True
 
-                    
             # Calculate distance projected on camera direction (oblique distance will give fisheye effect!)
             if side == Side.LeftOrRight:
                 # this difference is how far the ray has travelled in x before hitting a side wall.
@@ -279,69 +272,76 @@ class Renderer:
             # it's too expensive to set each pixel directly so we
             # map the line we want from the texture and draw that directly
             # to the screens surface.
-            texture_slice = self._get_texture_slice(ray_direction, wall_x, texture, side)
-            self._draw_wall_line(x, draw_start, line_height, texture_slice, side)
-                
+            texture_slice = self._get_texture_slice(
+                ray_direction, wall_x, texture, side)
+            self._draw_wall_line(
+                x, draw_start, line_height, texture_slice, side)
+
     def _draw_sprites(self, player):
-        #SPRITE TEST
+        # SPRITE TEST
         # get the part of the image we want to draw from the texture
 
-        #find all sprites on the map!
+        # find all sprites on the map!
         sprite_positions = []
 
         for x in range(len(settings.MAP)):
             for y in range(len(settings.MAP[x])):
-                value= settings.MAP[x][y]
-                if value > 10 and value < 20: #ignore non sprite objects
-                    sprite_info = SpriteInfo(value, Vector2(x, y))
+                value = settings.MAP[x][y]
+                if value > 10 and value < 20:  # ignore non sprite objects
+                    sprite_info = SpriteInfo(value, Vector2(x + 0.5, y + 0.5))
                     sprite_positions.append(sprite_info)
 
         for sprite_info in sprite_positions:
 
             index = sprite_info.sprite_index - 11
             sprite_texture = self.SPRITE_TEXTURES[index]
-            sprite_y_pos = settings.HALF_SCREEN_HEIGHT - (sprite_texture.get_height()/2)
 
             sprite_pos = sprite_info.map_position
 
             distance_vector = sprite_pos - player.position
 
             distance = distance_vector.length()
-            
-            theta = player.get_rotation();
-            theta = theta * 57.2958 #Convert to degrees
-            if (theta < 0):
-                theta+= 360;  ## Make sure its in proper range
 
-            thetaTemp = math.atan2(distance_vector.y, distance_vector.x);  #Find angle between player and sprite
-            thetaTemp = thetaTemp * 57.2958 #Convert to degrees
+            theta = player.get_rotation()
+            theta = theta * 57.2958  # Convert to degrees
+            if (theta < 0):
+                theta += 360  # Make sure its in proper range
+
+            # Find angle between player and sprite
+            thetaTemp = math.atan2(distance_vector.y, distance_vector.x)
+            thetaTemp = thetaTemp * 57.2958  # Convert to degrees
             if (thetaTemp < 0):
-                thetaTemp += 360;  ## Make sure its in proper range
-            
+                thetaTemp += 360  # Make sure its in proper range
+
             fov = 66
             half_fov = fov / 2
 
             # Wrap things around if needed
-            yTmp = theta + half_fov  - thetaTemp  #Theta + half_fov  = angle of ray that generates leftmost collum of the screen
+            # Theta + half_fov  = angle of ray that generates leftmost collum of the screen
+            yTmp = theta + half_fov - thetaTemp
             if (thetaTemp > 270 and theta < 90):
-                yTmp = theta + half_fov  - thetaTemp + 360
+                yTmp = theta + half_fov - thetaTemp + 360
             if (theta > 270 and thetaTemp < 90):
-                yTmp = theta + half_fov  - thetaTemp - 360
-                
-            #Compute the screen x coordinate
+                yTmp = theta + half_fov - thetaTemp - 360
+
+            # Compute the screen x coordinate
             xTmp = yTmp * settings.SCREEN_WIDTH / fov
 
-            sprite_height = int(settings.SCREEN_HEIGHT / self._avoid_zero(distance))
+            sprite_height = int(settings.SCREEN_HEIGHT /
+                                self._avoid_zero(distance))
 
-            sprite_draw_start = (-sprite_height / 2) + settings.HALF_SCREEN_HEIGHT
+            sprite_draw_start = (-sprite_height / 2) + \
+                settings.HALF_SCREEN_HEIGHT
 
             # clamp draw start and draw end - there is no point drawing off the top or bottom of the screen.
             # remember, we draw from top to bottom.
             sprite_draw_start = max(sprite_draw_start, 0)
 
-            sprite_texture = pygame.transform.scale(sprite_texture, (sprite_height, sprite_height))
+            sprite_texture = pygame.transform.scale(
+                sprite_texture, (sprite_height, sprite_height))
 
-            sprite_image_location = pygame.Rect(xTmp, sprite_draw_start, 10, 10)
+            sprite_image_location = pygame.Rect(
+                xTmp, sprite_draw_start, 10, 10)
 
             self.SCREEN.blit(sprite_texture, sprite_image_location)
 
