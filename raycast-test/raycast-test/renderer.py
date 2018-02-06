@@ -346,12 +346,16 @@ class Renderer:
             self.SCREEN.blit(sprite_texture, sprite_image_location)
 
     def _draw_sky(self, player):
+
+        # TODO CLEAN UP AND COMMENT THIS
         sky_texture = pygame.image.load("assets/textures/skies/sky1.png")
 
         fov = 66
-        view_portion = 360 / fov
+        view_portion = fov / 360
 
-        width_on_screen = sky_texture.get_width() / view_portion
+        width_on_screen = sky_texture.get_width() * view_portion
+
+        width_on_screen = width_on_screen * 2.7
 
         player_rotation_in_degrees = player.get_rotation_degrees()
 
@@ -364,7 +368,7 @@ class Renderer:
 
         # get the part of the image we want to draw from the texture
         image_location = pygame.Rect(
-            x_start_pos, 0, x_end_pos, sky_texture.get_height())
+            x_start_pos, 0, width_on_screen, sky_texture.get_height())
         image_slice = sky_texture.subsurface(image_location)
 
         sky_texture = pygame.transform.scale(
