@@ -82,11 +82,9 @@ class Renderer:
         self._draw_debug_text(basicfont, player_x_text, 150, 60)
         self._draw_debug_text(basicfont, player_y_text, 150, 90)
 
-    def _draw_ceiling_and_floor(self):
+    def _draw_floor(self):
         # fill screen with back buffer color and then draw the ceiling/sky.
         self.SCREEN.fill(colors.FLOOR_GRAY)
-        pygame.draw.rect(self.SCREEN, colors.CEILING_GRAY,
-                         (0, 0, settings.SCREEN_WIDTH, settings.SCREEN_HEIGHT / 2))
 
     def _draw_wall_line(self, x, start, height, image_slice, side=Side.TopOrBottom):
         # figure out the position and size of the vertical line we want to draw on screen
@@ -345,9 +343,20 @@ class Renderer:
 
             self.SCREEN.blit(sprite_texture, sprite_image_location)
 
+    def _draw_sky(self, player):
+        sky_texture = pygame.image.load("assets/textures/skies/sky1.png")
+        sky_texture = pygame.transform.scale(
+            sky_texture, (int(settings.SCREEN_WIDTH),
+                          int(settings.HALF_SCREEN_HEIGHT)))
+
+        sky_location = pygame.Rect(0, 0, 10, 10)
+
+        self.SCREEN.blit(sky_texture, sky_location)
+
     def render(self, player, fps):
         """This method draws everything to the screen"""
-        self._draw_ceiling_and_floor()
+        self._draw_floor()
+        self._draw_sky(player)
         self._draw_walls(player)
         self._draw_sprites(player)
         self._draw_ui(player, fps)
