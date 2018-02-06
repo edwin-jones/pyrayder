@@ -291,7 +291,8 @@ class Renderer:
             # to the screens surface.
             texture_slice = self._get_texture_slice(ray_direction, wall_x, texture, side)
             self._draw_wall_line(x, draw_start, line_height, texture_slice, side)
-
+                
+    def _draw_sprites(self, player):
         #SPRITE TEST
         # get the part of the image we want to draw from the texture
         sprite_texture = self.SPRITE_TEXTURES[0]
@@ -303,12 +304,10 @@ class Renderer:
 
         distance = distance_vector.length()
         
-        theta = math.atan2(player.direction.y, player.direction.x);  #Find angle between player and sprite
+        theta = player.get_rotation();
         theta = theta * 57.2958 #Convert to degrees
         if (theta < 0):
 	        theta+= 360;  ## Make sure its in proper range
-
-        print(theta)
 
         thetaTemp = math.atan2(distance_vector.y, distance_vector.x);  #Find angle between player and sprite
         thetaTemp = thetaTemp * 57.2958 #Convert to degrees
@@ -341,12 +340,12 @@ class Renderer:
         sprite_image_location = pygame.Rect(xTmp, 0, 10, 10)
 
         self.SCREEN.blit(sprite_texture, sprite_image_location)
-                
 
     def render(self, player, fps):
         """This method draws everything to the screen"""
         self._draw_ceiling_and_floor()
         self._draw_walls(player)
+        self._draw_sprites(player)
         self._draw_ui(player, fps)
 
         # Go ahead and update the screen with what we've drawn.
