@@ -14,8 +14,8 @@ import math
 import asset_loader
 
 class SpriteInfo:
-    def __init__(self, x_screen_pos, map_position):
-        self.x_screen_pos = x_screen_pos
+    def __init__(self, sprite_index, map_position):
+        self.sprite_index = sprite_index
         self.map_position = map_position
 
 class Renderer:
@@ -124,10 +124,6 @@ class Renderer:
 
 
     def _draw_walls(self, player):
-
-        sprites_to_draw_x_positions = []
-
-        draw_enemy = True
         for x in range(0, settings.SCREEN_WIDTH):
 
             # calculate ray position and direction
@@ -225,12 +221,6 @@ class Renderer:
                 map_tile = settings.MAP[map_x][map_y]
                 if map_tile > 0 and map_tile < 10:
                     hit = True
-                
-                #we hit a sprite, draw it!
-                if map_tile > 10 and map_tile < 21 and draw_enemy is True:
-                    draw_enemy = False
-                    sprite_info = SpriteInfo(x, Vector2(map_x, map_y))
-                    sprites_to_draw_x_positions.append(sprite_info)
 
                     
             # Calculate distance projected on camera direction (oblique distance will give fisheye effect!)
@@ -295,51 +285,65 @@ class Renderer:
     def _draw_sprites(self, player):
         #SPRITE TEST
         # get the part of the image we want to draw from the texture
-        sprite_texture = self.SPRITE_TEXTURES[0]
-        sprite_y_pos = settings.HALF_SCREEN_HEIGHT - (sprite_texture.get_height()/2)
 
-        sprite_pos = Vector2(3.5, 6.5)
+        #find all sprites on the map!
+        sprite_positions = []
 
-        distance_vector = sprite_pos - player.position
+        for x in range(len(settings.MAP)):
+            for y in range(len(settings.MAP[x])):
+                value= settings.MAP[x][y]
+                if value > 10 and value < 20: #ignore non sprite objects
+                    sprite_info = SpriteInfo(value, Vector2(x, y))
+                    sprite_positions.append(sprite_info)
 
-        distance = distance_vector.length()
-        
-        theta = player.get_rotation();
-        theta = theta * 57.2958 #Convert to degrees
-        if (theta < 0):
-	        theta+= 360;  ## Make sure its in proper range
+        for sprite_info in sprite_positions:
 
-        thetaTemp = math.atan2(distance_vector.y, distance_vector.x);  #Find angle between player and sprite
-        thetaTemp = thetaTemp * 57.2958 #Convert to degrees
-        if (thetaTemp < 0):
-	        thetaTemp += 360;  ## Make sure its in proper range
-        
-        fov = 66
-        half_fov = fov / 2
+            index = sprite_info.sprite_index - 11
+            sprite_texture = self.SPRITE_TEXTURES[index]
+            sprite_y_pos = settings.HALF_SCREEN_HEIGHT - (sprite_texture.get_height()/2)
 
-        # Wrap things around if needed
-        yTmp = theta + half_fov  - thetaTemp  #Theta + half_fov  = angle of ray that generates leftmost collum of the screen
-        if (thetaTemp > 270 and theta < 90):
-            yTmp = theta + half_fov  - thetaTemp + 360
-        if (theta > 270 and thetaTemp < 90):
-            yTmp = theta + half_fov  - thetaTemp - 360
+            sprite_pos = sprite_info.map_position
+
+            distance_vector = sprite_pos - player.position
+
+            distance = distance_vector.length()
             
-        #Compute the screen x coordinate
-        xTmp = yTmp * settings.SCREEN_WIDTH / fov
+            theta = player.get_rotation();
+            theta = theta * 57.2958 #Convert to degrees
+            if (theta < 0):
+                theta+= 360;  ## Make sure its in proper range
 
-        sprite_height = int(settings.SCREEN_HEIGHT / self._avoid_zero(distance))
+            thetaTemp = math.atan2(distance_vector.y, distance_vector.x);  #Find angle between player and sprite
+            thetaTemp = thetaTemp * 57.2958 #Convert to degrees
+            if (thetaTemp < 0):
+                thetaTemp += 360;  ## Make sure its in proper range
+            
+            fov = 66
+            half_fov = fov / 2
 
-        sprite_draw_start = (-sprite_height / 2) + settings.HALF_SCREEN_HEIGHT
+            # Wrap things around if needed
+            yTmp = theta + half_fov  - thetaTemp  #Theta + half_fov  = angle of ray that generates leftmost collum of the screen
+            if (thetaTemp > 270 and theta < 90):
+                yTmp = theta + half_fov  - thetaTemp + 360
+            if (theta > 270 and thetaTemp < 90):
+                yTmp = theta + half_fov  - thetaTemp - 360
+                
+            #Compute the screen x coordinate
+            xTmp = yTmp * settings.SCREEN_WIDTH / fov
 
-        # clamp draw start and draw end - there is no point drawing off the top or bottom of the screen.
-        # remember, we draw from top to bottom.
-        sprite_draw_start = max(sprite_draw_start, 0)
+            sprite_height = int(settings.SCREEN_HEIGHT / self._avoid_zero(distance))
 
-        sprite_texture = pygame.transform.scale(sprite_texture, (sprite_height, sprite_height))
+            sprite_draw_start = (-sprite_height / 2) + settings.HALF_SCREEN_HEIGHT
 
-        sprite_image_location = pygame.Rect(xTmp, 0, 10, 10)
+            # clamp draw start and draw end - there is no point drawing off the top or bottom of the screen.
+            # remember, we draw from top to bottom.
+            sprite_draw_start = max(sprite_draw_start, 0)
 
-        self.SCREEN.blit(sprite_texture, sprite_image_location)
+            sprite_texture = pygame.transform.scale(sprite_texture, (sprite_height, sprite_height))
+
+            sprite_image_location = pygame.Rect(xTmp, sprite_draw_start, 10, 10)
+
+            self.SCREEN.blit(sprite_texture, sprite_image_location)
 
     def render(self, player, fps):
         """This method draws everything to the screen"""
