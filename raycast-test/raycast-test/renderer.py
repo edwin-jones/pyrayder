@@ -77,10 +77,12 @@ class Renderer:
         fps_text = f'fps: {fps}'
         player_x_text = f'x: {player.position.x:.2f}'
         player_y_text = f'y: {player.position.y:.2f}'
+        player_rotation_text = f'rotation: {player.get_rotation_degrees():.0f}'
 
         self._draw_debug_text(basicfont, fps_text, 150, 20)
         self._draw_debug_text(basicfont, player_x_text, 150, 60)
         self._draw_debug_text(basicfont, player_y_text, 150, 90)
+        self._draw_debug_text(basicfont, player_rotation_text, 150, 120)
 
     def _draw_floor(self):
         # fill screen with back buffer color and then draw the ceiling/sky.
@@ -345,11 +347,30 @@ class Renderer:
 
     def _draw_sky(self, player):
         sky_texture = pygame.image.load("assets/textures/skies/sky1.png")
-        sky_texture = pygame.transform.scale(
-            sky_texture, (int(settings.SCREEN_WIDTH),
-                          int(settings.HALF_SCREEN_HEIGHT)))
 
-        sky_location = pygame.Rect(0, 0, 10, 10)
+        fov = 66
+        view_portion = 360 / fov
+
+        width_on_screen = sky_texture.get_width() / view_portion
+
+        player_rotation_in_degrees = player.get_rotation_degrees()
+
+        player_rotation_in_degrees = player_rotation_in_degrees if player_rotation_in_degrees > 1 else 1
+
+        portion = player_rotation_in_degrees / 360
+
+        x_start_pos = portion * width_on_screen
+        x_end_pos = x_start_pos + width_on_screen
+
+        # get the part of the image we want to draw from the texture
+        image_location = pygame.Rect(
+            x_start_pos, 0, x_end_pos, sky_texture.get_height())
+        image_slice = sky_texture.subsurface(image_location)
+
+        sky_texture = pygame.transform.scale(
+            image_slice, (int(settings.SCREEN_WIDTH),
+                          int(settings.HALF_SCREEN_HEIGHT)))
+        sky_location = pygame.Rect(0, 0, 0, 0)
 
         self.SCREEN.blit(sky_texture, sky_location)
 
