@@ -18,6 +18,7 @@ class SpriteInfo:
     def __init__(self, sprite_index, map_position):
         self.sprite_index = sprite_index
         self.map_position = map_position
+        
 
 
 class Renderer:
@@ -37,6 +38,8 @@ class Renderer:
 
         self.SPRITE_TEXTURES = asset_loader.get_textures(
             sprite_texture_folder_path)
+        
+        self._wall_z_buffer = []
 
     def _avoid_zero(self, value):
         """use this function to avoid zero if we risk a divide by zero expression."""
@@ -277,6 +280,9 @@ class Renderer:
             self._draw_wall_line(
                 x, draw_start, line_height, texture_slice, side)
 
+            #add this to z buffer
+            self._wall_z_buffer.append(perceptual_wall_distance)
+
     def _draw_sprites(self, player):
         # SPRITE TEST
         # get the part of the image we want to draw from the texture
@@ -340,10 +346,23 @@ class Renderer:
             sprite_texture = pygame.transform.scale(
                 sprite_texture, (sprite_height, sprite_height))
 
-            sprite_image_location = pygame.Rect(
-                xTmp, sprite_draw_start, 10, 10)
+            current_width = sprite_texture.get_width()
+            current_height = sprite_texture.get_height()
 
-            self.SCREEN.blit(sprite_texture, sprite_image_location)
+            for x in range(current_width):
+
+                #check z buffer
+                if True:#self._wall_z_buffer[int(xTmp + x)] > distance:
+
+                    #draw sprite vertical line
+                    location = pygame.Rect(x, 0, 1, current_height)
+                    slice = sprite_texture.subsurface(location)
+                    
+
+                    sprite_image_location = pygame.Rect(
+                        xTmp + x, sprite_draw_start, 10, 10)
+
+                    self.SCREEN.blit(slice, sprite_image_location)
 
     def _draw_sky(self, player):
 
