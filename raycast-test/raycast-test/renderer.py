@@ -15,9 +15,10 @@ import asset_loader
 
 
 class SpriteInfo:
-    def __init__(self, sprite_index, map_position):
+    def __init__(self, sprite_index, map_position, distance_from_player):
         self.sprite_index = sprite_index
         self.map_position = map_position
+        self.distance_from_player = distance_from_player
 
 
 class Renderer:
@@ -30,7 +31,7 @@ class Renderer:
             current_directory, "assets/textures/surfaces")
 
         sprite_texture_folder_path = os.path.join(
-            current_directory, "assets/textures/enemies")
+            current_directory, "assets/textures/objects")
 
         self.WALL_TEXTURES = asset_loader.get_textures(
             wall_texture_folder_path)
@@ -296,8 +297,16 @@ class Renderer:
             for y in range(len(settings.MAP[x])):
                 value = settings.MAP[x][y]
                 if value > 10 and value < 20:  # ignore non sprite objects
-                    sprite_info = SpriteInfo(value, Vector2(x + 0.5, y + 0.5))
+                    sprite_pos = Vector2(x + 0.5, y + 0.5)
+                    distance_from_player = abs(
+                        (player.position - sprite_pos).length())
+                    sprite_info = SpriteInfo(
+                        value, sprite_pos, distance_from_player)
                     sprite_positions.append(sprite_info)
+
+        # sort sprite positions so the ones furthest away are drawn first
+        sprite_positions.sort(
+            key=lambda x: x.distance_from_player, reverse=True)
 
         for sprite_info in sprite_positions:
 
@@ -338,8 +347,8 @@ class Renderer:
             sprite_height = int(settings.SCREEN_HEIGHT /
                                 self._avoid_zero(distance))
 
-            sprite_draw_start = (-sprite_height / 2) + \
-                settings.HALF_SCREEN_HEIGHT
+            sprite_draw_start = settings.HALF_SCREEN_HEIGHT - \
+                (sprite_height / 2)
 
             # clamp draw start and draw end - there is no point drawing off the top or bottom of the screen.
             # remember, we draw from top to bottom.
