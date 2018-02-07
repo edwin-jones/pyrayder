@@ -18,7 +18,6 @@ class SpriteInfo:
     def __init__(self, sprite_index, map_position):
         self.sprite_index = sprite_index
         self.map_position = map_position
-        
 
 
 class Renderer:
@@ -38,7 +37,7 @@ class Renderer:
 
         self.SPRITE_TEXTURES = asset_loader.get_textures(
             sprite_texture_folder_path)
-        
+
         self._wall_z_buffer = []
 
     def _avoid_zero(self, value):
@@ -121,6 +120,9 @@ class Renderer:
         return image_slice
 
     def _draw_walls(self, player):
+        # clear z buffer
+        self._wall_z_buffer.clear()
+
         for x in range(0, settings.SCREEN_WIDTH):
 
             # calculate ray position and direction
@@ -280,7 +282,7 @@ class Renderer:
             self._draw_wall_line(
                 x, draw_start, line_height, texture_slice, side)
 
-            #add this to z buffer
+            # add this to z buffer
             self._wall_z_buffer.append(perceptual_wall_distance)
 
     def _draw_sprites(self, player):
@@ -351,13 +353,15 @@ class Renderer:
 
             for x in range(current_width):
 
-                #check z buffer
-                if True:#self._wall_z_buffer[int(xTmp + x)] > distance:
+                # check z buffer (clamp index first)
+                x_check = int(xTmp + x)
+                x_check = max(x_check, 0)
+                x_check = min(x_check, settings.SCREEN_WIDTH - 1)
+                if self._wall_z_buffer[x_check] > distance:
 
-                    #draw sprite vertical line
+                    # draw sprite vertical line
                     location = pygame.Rect(x, 0, 1, current_height)
                     slice = sprite_texture.subsurface(location)
-                    
 
                     sprite_image_location = pygame.Rect(
                         xTmp + x, sprite_draw_start, 10, 10)
