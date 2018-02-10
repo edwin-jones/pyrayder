@@ -1,5 +1,6 @@
 """This module defines the renderer object and related methods"""
 
+from sprite import Sprite
 from side import Side
 from pygame.math import Vector2
 
@@ -9,16 +10,7 @@ import pygame
 import colors
 import os
 import math
-
-
 import asset_loader
-
-
-class SpriteInfo:
-    def __init__(self, sprite_index, map_position, distance_from_player):
-        self.sprite_index = sprite_index
-        self.map_position = map_position
-        self.distance_from_player = distance_from_player
 
 
 class Renderer:
@@ -300,20 +292,20 @@ class Renderer:
                     sprite_pos = Vector2(x + 0.5, y + 0.5)
                     distance_from_player = abs(
                         (player.position - sprite_pos).length())
-                    sprite_info = SpriteInfo(
+                    sprite = Sprite(
                         value, sprite_pos, distance_from_player)
-                    sprite_positions.append(sprite_info)
+                    sprite_positions.append(sprite)
 
         # sort sprite positions so the ones furthest away are drawn first
         sprite_positions.sort(
             key=lambda x: x.distance_from_player, reverse=True)
 
-        for sprite_info in sprite_positions:
+        for sprite in sprite_positions:
 
-            index = sprite_info.sprite_index - 11
+            index = sprite.sprite_index - 11
             sprite_texture = self.SPRITE_TEXTURES[index]
 
-            sprite_pos = sprite_info.map_position
+            sprite_pos = sprite.map_position
 
             distance_vector = sprite_pos - player.position
 
