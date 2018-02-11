@@ -1,5 +1,5 @@
 # pyrayder
-A simple raycasting engine writting in Python 3 and Pygame. This is a labour of love written in my spare time and is very much a work
+A simple raycasting engine created in Python 3 and Pygame. This is a labour of love written in my spare time and is very much a work
 in process.
 
 ## Disclaimers
