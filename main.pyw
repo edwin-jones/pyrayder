@@ -1,11 +1,11 @@
 """This is the main entry point for the program"""
 
-from renderer import Renderer
-from game import Game
-from player import Player
-from keyboard_input_handler import KeyboardInputHandler
+from pyrayder.renderer import Renderer
+from pyrayder.game import Game
+from pyrayder.player import Player
+from pyrayder.keyboard_input_handler import KeyboardInputHandler
 
-import settings
+import pyrayder.settings as settings
 
 
 if __name__ == "__main__":
@@ -14,7 +14,7 @@ if __name__ == "__main__":
 
     player = Player(settings.PLAYER_START_POSITION,
                     settings.PLAYER_START_DIRECTION, settings.PLAYER_START_CAMERA_PLANE)
-    
+
     input_handler = KeyboardInputHandler()
 
     game = Game(renderer, player, input_handler)

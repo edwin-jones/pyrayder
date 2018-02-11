@@ -1,16 +1,15 @@
 """This module defines the renderer object and related methods"""
 
-from sprite import Sprite
-from side import Side
+from pyrayder.sprite import Sprite
+from pyrayder.side import Side
 from pygame.math import Vector2
 
-import side
-import settings
+import pyrayder.settings as settings
 import pygame
-import colors
+import pyrayder.colors as colors
 import os
 import math
-import asset_loader
+import pyrayder.asset_loader as asset_loader
 
 
 class Renderer:
@@ -20,10 +19,10 @@ class Renderer:
 
         current_directory = os.path.dirname(os.path.realpath(__file__))
         wall_texture_folder_path = os.path.join(
-            current_directory, "assets/textures/surfaces")
+            current_directory, "../assets/textures/surfaces")
 
         sprite_texture_folder_path = os.path.join(
-            current_directory, "assets/textures/objects")
+            current_directory, "../assets/textures/objects")
 
         self.WALL_TEXTURES = asset_loader.get_textures(
             wall_texture_folder_path)

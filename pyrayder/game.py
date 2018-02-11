@@ -4,10 +4,11 @@
 
 import math
 import pygame
-import settings
+import pyrayder.settings as settings
 
 from pygame.math import Vector2
-from side import Side
+from pyrayder.side import Side
+
 
 class Game:
     """primary game engine"""
@@ -18,10 +19,9 @@ class Game:
 
     def __init__(self, renderer, player, input_handler):
         self._renderer = renderer
-        self._player = player 
+        self._player = player
         self._input_handler = input_handler
         self._running = True
-
 
     def run(self):
         """Run the game with this method"""

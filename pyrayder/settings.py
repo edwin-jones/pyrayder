@@ -1,7 +1,7 @@
 """This module contains settings and config for the main game"""
 
 import math
-import colors
+import pyrayder.colors as colors
 
 from pygame.math import Vector2
 
