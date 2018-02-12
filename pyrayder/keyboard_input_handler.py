@@ -2,7 +2,7 @@
 
 import pygame
 import math
-import pyrayder.settings as settings
+import settings
 
 
 class KeyboardInputHandler:

@@ -1,15 +1,15 @@
 """This module defines the renderer object and related methods"""
 
-from pyrayder.sprite import Sprite
-from pyrayder.side import Side
+from sprite import Sprite
+from side import Side
 from pygame.math import Vector2
 
-import pyrayder.settings as settings
+import settings
 import pygame
-import pyrayder.colors as colors
+import colors
 import os
 import math
-import pyrayder.asset_loader as asset_loader
+import asset_loader
 
 
 class Renderer:
@@ -19,10 +19,10 @@ class Renderer:
 
         current_directory = os.path.dirname(os.path.realpath(__file__))
         wall_texture_folder_path = os.path.join(
-            current_directory, "../assets/textures/surfaces")
+            current_directory, "assets/textures/surfaces")
 
         sprite_texture_folder_path = os.path.join(
-            current_directory, "../assets/textures/objects")
+            current_directory, "assets/textures/objects")
 
         self.WALL_TEXTURES = asset_loader.get_textures(
             wall_texture_folder_path)
@@ -373,7 +373,7 @@ class Renderer:
         # TODO CLEAN UP AND COMMENT THIS
         current_directory = os.path.dirname(os.path.realpath(__file__))
         sky_texture_folder_path = os.path.join(
-            current_directory, "../assets/textures/skies/sky1.png")
+            current_directory, "assets/textures/skies/sky1.png")
         sky_texture = pygame.image.load(sky_texture_folder_path)
 
         fov = 66

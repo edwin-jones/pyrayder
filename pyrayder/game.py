@@ -4,10 +4,10 @@
 
 import math
 import pygame
-import pyrayder.settings as settings
+import settings as settings
 
 from pygame.math import Vector2
-from pyrayder.side import Side
+from side import Side
 
 
 class Game:

@@ -13,6 +13,8 @@ You will can then run the project with:
 python pyrayder
 ```
 
+Use the arrow keys to move.
+
 ## Disclaimers
 _This project uses simple image assets from Doom and Wolfenstein 3D for illustrative and educational purposes **only** under fair use.
 These assets remain property of their respective owners and I claim no ownership over them._
