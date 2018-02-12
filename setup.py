@@ -1,10 +1,13 @@
 from setuptools import setup
 
 setup(name='pyrayder',
-      version='1.0',
+      version='0.1',
       description='A simple raycasting engine writting in Python 3 and Pygame',
       author='Edwin Jones',
       author_email='edwin@edwinjones.me.uk',
+      url='https://github.com/edwinj85/pyrayder',
       packages=['pyrayder'],
-      install_requires=['pygame'],
+      license='MIT',
+      install_requires=['pygame==1.9.3'],
+      zip_safe=False
       )
