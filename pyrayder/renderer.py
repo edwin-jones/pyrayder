@@ -371,7 +371,10 @@ class Renderer:
     def _draw_sky(self, player):
 
         # TODO CLEAN UP AND COMMENT THIS
-        sky_texture = pygame.image.load("assets/textures/skies/sky1.png")
+        current_directory = os.path.dirname(os.path.realpath(__file__))
+        sky_texture_folder_path = os.path.join(
+            current_directory, "../assets/textures/skies/sky1.png")
+        sky_texture = pygame.image.load(sky_texture_folder_path)
 
         fov = 66
         view_portion = fov / 360
