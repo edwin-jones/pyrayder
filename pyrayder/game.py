@@ -4,7 +4,7 @@
 
 import math
 import pygame
-import settings as settings
+import settings
 
 from pygame.math import Vector2
 from side import Side

@@ -95,15 +95,27 @@ class Renderer:
 
         self.SCREEN.blit(scaled, scale_rect)
 
-    def _get_texture_slice(self, ray_direction, wall_x, texture, side):
-            # figure out how many pixels across the texture to be in x
-        texture_x = int(wall_x * int(texture.get_width()))
+    def _get_texture_slice(self, ray_direction, wall_x_percentage_across, texture, side):
+        # wall x will be somewhere between 0 and 1 (eg, 25% across will be 0.25)
+        # figure out how many pixels across the texture to be in x
+        # we cast to an int to floor the value as we cannot start drawing at a non integral
+        # x value
+        texture_x = int(wall_x_percentage_across * texture.get_width())
 
-        # this code makes sure the texture doesn't flip/invert TODO HOW DOES THIS WORK?
+        # get the width of the texture where column 1 = 0, col 2 = 1 and so on.
+        zero_indexed_width = texture.get_width() - 1
+
+        # if side is left/right and we are travelling right, we have hit a LEFT side
+        # draw the texture from right to left (NOT left to right as normal)
+        # as otherwise we will draw the texture backwards like we are behind it.
         if side == Side.LeftOrRight and ray_direction.x > 0:
-            texture_x = texture.get_width() - texture_x - 1
+            texture_x = zero_indexed_width - texture_x
+
+        # if side is top/bottom and we are travelling down, we have hit a TOP side.
+        # draw the texture from right to left (NOT left to right as normal)
+        # as otherwise we will draw the texture backwards like we are behind it.
         if side == Side.TopOrBottom and ray_direction.y < 0:
-            texture_x = texture.get_width() - texture_x - 1
+            texture_x = zero_indexed_width - texture_x
 
         # get the part of the image we want to draw from the texture
         image_location = pygame.Rect(texture_x, 0, 1, texture.get_height())
@@ -257,20 +269,32 @@ class Renderer:
             texture_index = max(0, texture_index)
             texture = self.WALL_TEXTURES[texture_index]
 
-            # where exactly the wall was hit in terms of a value between 0 and 1. TODO HOW DOES THIS WORK?
-            wall_x = 0
+            # where exactly the wall was hit in terms of a value between 0 and 1.
+            distance_ray_has_travelled_in_one_axis = 0
+
+            # if we had hit a left or right side, we need to know how far in y the ray has travelled
+            # from the player.
             if (side == Side.LeftOrRight):
-                wall_x = ray_origin.y + perceptual_wall_distance * ray_direction.y
+                distance_ray_has_travelled_in_one_axis = player.position.y + \
+                    (perceptual_wall_distance * ray_direction.y)
+
+            # if we have hit a top or bottom side, we need to know how far in x the ray has travelled
+            # from the player
             else:
-                wall_x = ray_origin.x + perceptual_wall_distance * ray_direction.x
-            wall_x -= math.floor((wall_x))
+                distance_ray_has_travelled_in_one_axis = player.position.x + \
+                    perceptual_wall_distance * ray_direction.x
+
+            # we only want a measure of how far across the wall we have hit as a
+            # percentage, so we use the modulo operator to get rid of
+            # the whole part of the number. This would make 10.77 into 0.77.
+            wall_x_across_percentage = distance_ray_has_travelled_in_one_axis % 1
 
             # get which pixel in x from the texture we want to use
             # it's too expensive to set each pixel directly so we
             # map the line we want from the texture and draw that directly
             # to the screens surface.
             texture_slice = self._get_texture_slice(
-                ray_direction, wall_x, texture, side)
+                ray_direction, wall_x_across_percentage, texture, side)
             self._draw_wall_line(
                 x, draw_start, line_height, texture_slice, side)
 
