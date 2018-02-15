@@ -405,7 +405,7 @@ class Renderer:
 
         width_on_screen = sky_texture.get_width() * view_portion
 
-        width_on_screen = width_on_screen * 2.7
+        width_on_screen = width_on_screen * (180 / fov)
 
         player_rotation_in_degrees = player.get_rotation_degrees()
 
