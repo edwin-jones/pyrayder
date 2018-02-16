@@ -308,11 +308,11 @@ class Renderer:
         # find all sprites on the map!
         sprite_positions = []
 
-        for x in range(len(settings.MAP)):
-            for y in range(len(settings.MAP[x])):
-                value = settings.MAP[x][y]
+        for column in range(len(settings.MAP)):
+            for y in range(len(settings.MAP[column])):
+                value = settings.MAP[column][y]
                 if value > 10 and value < 20:  # ignore non sprite objects
-                    sprite_pos = Vector2(x + 0.5, y + 0.5)
+                    sprite_pos = Vector2(column + 0.5, y + 0.5)
                     distance_from_player = abs(
                         (player.position - sprite_pos).length())
                     sprite = Sprite(
@@ -321,7 +321,7 @@ class Renderer:
 
         # sort sprite positions so the ones furthest away are drawn first
         sprite_positions.sort(
-            key=lambda x: x.distance_from_player, reverse=True)
+            key=lambda column: column.distance_from_player, reverse=True)
 
         for sprite in sprite_positions:
 
@@ -334,30 +334,37 @@ class Renderer:
 
             distance = distance_vector.length()
 
-            theta = player.get_rotation()
-            theta = theta * 57.2958  # Convert to degrees
-            if (theta < 0):
-                theta += 360  # Make sure its in proper range
+            player_rotation = player.get_rotation()
+
+            # precalculate some angles in radians
+            full_circle = math.pi * 2
+            three_quarter_circle = math.pi * 1.5
+            half_cicle = math.pi * 1
+            quarter_circle = math.pi * 0.5
 
             # Find angle between player and sprite
-            thetaTemp = math.atan2(distance_vector.y, distance_vector.x)
-            thetaTemp = thetaTemp * 57.2958  # Convert to degrees
-            if (thetaTemp < 0):
-                thetaTemp += 360  # Make sure its in proper range
+            angle_between_sprite_and_player = math.atan2(
+                distance_vector.y, distance_vector.x)
 
-            fov = 66
+            if (angle_between_sprite_and_player < 0):
+                angle_between_sprite_and_player += full_circle  # Make sure its in proper range
+
+            fov = 66 / 57.2958  # FOV in radians
             half_fov = fov / 2
 
             # Wrap things around if needed
-            # Theta + half_fov  = angle of ray that generates leftmost collum of the screen
-            yTmp = theta + half_fov - thetaTemp
-            if (thetaTemp > 270 and theta < 90):
-                yTmp = theta + half_fov - thetaTemp + 360
-            if (theta > 270 and thetaTemp < 90):
-                yTmp = theta + half_fov - thetaTemp - 360
+            # player_rotation + half_fov = angle of ray that generates leftmost column of the sprite
+            yTmp = player_rotation + half_fov - angle_between_sprite_and_player
+
+            if (angle_between_sprite_and_player > three_quarter_circle and player_rotation < half_cicle):
+                yTmp = player_rotation + half_fov - \
+                    angle_between_sprite_and_player + full_circle
+            if (player_rotation > three_quarter_circle and angle_between_sprite_and_player < half_cicle):
+                yTmp = player_rotation + half_fov - \
+                    angle_between_sprite_and_player - full_circle
 
             # Compute the screen x coordinate
-            xTmp = yTmp * settings.SCREEN_WIDTH / fov
+            sprite_x_start = yTmp * settings.SCREEN_WIDTH / fov
 
             sprite_height = int(settings.SCREEN_HEIGHT /
                                 self._avoid_zero(distance))
@@ -375,20 +382,20 @@ class Renderer:
             current_width = sprite_texture.get_width()
             current_height = sprite_texture.get_height()
 
-            for x in range(current_width):
+            for column in range(current_width):
 
                 # check z buffer (clamp index first)
-                x_check = int(xTmp + x)
+                x_check = int(sprite_x_start + column)
                 x_check = max(x_check, 0)
                 x_check = min(x_check, settings.SCREEN_WIDTH - 1)
                 if self._wall_z_buffer[x_check] > distance:
 
                     # draw sprite vertical line
-                    location = pygame.Rect(x, 0, 1, current_height)
+                    location = pygame.Rect(column, 0, 1, current_height)
                     slice = sprite_texture.subsurface(location)
 
                     sprite_image_location = pygame.Rect(
-                        xTmp + x, sprite_draw_start, 10, 10)
+                        sprite_x_start + column, sprite_draw_start, 0, 0)
 
                     self.SCREEN.blit(slice, sprite_image_location)
 
