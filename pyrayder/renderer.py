@@ -353,31 +353,34 @@ class Renderer:
             half_fov = fov / 2
 
             # Wrap things around if needed
-            # player_rotation + half_fov = angle of ray that generates leftmost column of the sprite
-            yTmp = player_rotation + half_fov - angle_between_sprite_and_player
+            # find angle of ray that generates leftmost column of the sprite
+            angle_between_player_and_left_side_of_sprite = player_rotation - \
+                angle_between_sprite_and_player + half_fov
 
             if (angle_between_sprite_and_player > three_quarter_circle and player_rotation < half_cicle):
-                yTmp = player_rotation + half_fov - \
+                angle_between_player_and_left_side_of_sprite = player_rotation + half_fov - \
                     angle_between_sprite_and_player + full_circle
+
             if (player_rotation > three_quarter_circle and angle_between_sprite_and_player < half_cicle):
-                yTmp = player_rotation + half_fov - \
+                angle_between_player_and_left_side_of_sprite = player_rotation + half_fov - \
                     angle_between_sprite_and_player - full_circle
 
             # Compute the screen x coordinate
-            sprite_x_start = yTmp * settings.SCREEN_WIDTH / fov
+            thing = angle_between_player_and_left_side_of_sprite * settings.SCREEN_WIDTH
+            sprite_x_start = thing / fov
 
-            sprite_height = int(settings.SCREEN_HEIGHT /
-                                self._avoid_zero(distance))
+            sprite_size = int(settings.SCREEN_HEIGHT /
+                              self._avoid_zero(distance))
 
             sprite_draw_start = settings.HALF_SCREEN_HEIGHT - \
-                (sprite_height / 2)
+                (sprite_size / 2)
 
             # clamp draw start and draw end - there is no point drawing off the top or bottom of the screen.
             # remember, we draw from top to bottom.
             sprite_draw_start = max(sprite_draw_start, 0)
 
             sprite_texture = pygame.transform.scale(
-                sprite_texture, (sprite_height, sprite_height))
+                sprite_texture, (sprite_size, sprite_size))
 
             current_width = sprite_texture.get_width()
             current_height = sprite_texture.get_height()
