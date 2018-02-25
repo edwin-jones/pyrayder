@@ -370,9 +370,9 @@ class Renderer:
     def render(self, player, fps):
         """This method draws everything to the screen"""
         self._draw_floor()
-        self._draw_sky(player)
-        self._draw_walls(player)
-        self._draw_sprites(player)
+        #self._draw_sky(player)
+        #self._draw_walls(player)
+        #self._draw_sprites(player)
         self._draw_ui(player, fps)
 
         # Go ahead and update the screen with what we've drawn.
