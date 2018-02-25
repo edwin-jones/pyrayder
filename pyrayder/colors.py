@@ -1,4 +1,5 @@
-#This file defines color constants.
+"""This module defines color constants."""
+
 from collections import namedtuple
 
 Color = namedtuple('Color', 'r g b')

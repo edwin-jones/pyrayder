@@ -1,7 +1,7 @@
 """This module contains the keyboard input handler type"""
 
-import pygame
 import math
+import pygame
 import settings
 
 
@@ -9,7 +9,7 @@ class KeyboardInputHandler:
     """A basic keyboard input handler class"""
 
     def handle_input(self, player):
-        """This function handles control input for this program. Returns false if exit button pressed"""
+        """This function handles control input for this program. Returns false if exit button is pressed"""
 
         for event in pygame.event.get():
             # quit if user presses exit
@@ -53,7 +53,7 @@ class KeyboardInputHandler:
         if pressed[pygame.K_d]:
             player.position += player.camera_plane * settings.MOVE_SPEED
 
-            # rotate left and right
+        # rotate left and right
         # note, to rotate a vector a by an angle to become vector r(a):
         # j+k = a so r(j) + r(k) = r(a)
         # The vectors (a.x, 0) and (0, a.y) meet the criteria so if we rotate then sum them, we get r(a).
@@ -61,17 +61,9 @@ class KeyboardInputHandler:
         # See http://mathworld.wolfram.com/images/eps-gif/RotationMatrixAxes_1000.gif for more a better explanation for the rotating the vector (1,1)
 
         if pressed[pygame.K_LEFT]:
-            # both camera direction and camera plane must be rotated
-            player.direction = player.direction.rotate(settings.ROTATION_SPEED)
-            player.camera_plane = player.camera_plane.rotate(
-                settings.ROTATION_SPEED)
+            player.rotate(settings.ROTATION_SPEED)
 
         if pressed[pygame.K_RIGHT]:
-            # both camera direction and camera plane must be rotated
-            player.direction = player.direction.rotate(
-                -settings.ROTATION_SPEED)
-
-            player.camera_plane = player.camera_plane.rotate(
-                -settings.ROTATION_SPEED)
+            player.rotate(-settings.ROTATION_SPEED)
 
         return True

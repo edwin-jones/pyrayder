@@ -1,12 +1,11 @@
 """This is the main entry point for the program"""
 
-from renderer import Renderer
+import settings
+
 from game import Game
-from player import Player
 from keyboard_input_handler import KeyboardInputHandler
-
-import settings as settings
-
+from player import Player
+from renderer import Renderer
 
 if __name__ == "__main__":
 

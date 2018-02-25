@@ -3,19 +3,16 @@
 # and here https://github.com/Mekire/pygame-raycasting-experiment
 
 import math
-import pygame
-import settings
 
+import pygame
 from pygame.math import Vector2
+
+import settings
 from side import Side
 
 
 class Game:
-    """primary game engine"""
-
-    """To rotate a vector, multiply it with the rotation matrix
-    [ cos(a) -sin(a) ]
-    [ sin(a)  cos(a) ]"""
+    """primary game engine class"""
 
     def __init__(self, renderer, player, input_handler):
         self._renderer = renderer

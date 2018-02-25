@@ -1,4 +1,5 @@
 """This is a helper module to load assets such as tectures etc."""
+
 import os
 import pygame
 
