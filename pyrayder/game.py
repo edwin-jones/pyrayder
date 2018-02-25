@@ -1,14 +1,12 @@
+"""This module defines the primary game object"""
 # inspiration lovingly taken from here http://lodev.org/cgtutor/raycasting.html
 # and here https://www.essentialmath.com/GDC2012/GDC2012_JMV_Rotations.pdf (see 2D vec rotations)
 # and here https://github.com/Mekire/pygame-raycasting-experiment
 
 import math
-
 import pygame
-from pygame.math import Vector2
 
 import settings
-from side import Side
 
 
 class Game:
