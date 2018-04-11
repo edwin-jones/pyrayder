@@ -17,7 +17,7 @@ class Plotter:
             return value
 
     def get_object_size_based_on_distance(self, distance):
-        """Returns a value between 1 (100%) and 0 (0%) describing how much of the vertical screen an object 
+        """Returns a value between 1 (100%) and 0 (0%) describing how much of the vertical screen an object
            should consume based on its distance from the player"""
 
         size = int(settings.SCREEN_HEIGHT /
@@ -109,6 +109,14 @@ class Plotter:
         if side == Side.LeftOrRight:
             # this difference is how far the ray has travelled in x before hitting a side wall.
             distance_in_x = map_pos.x - player.position.x
+
+            if settings.MAP[int(map_pos.x)][int(map_pos.y)] == 10:
+
+                if(player.position.x < map_pos.x):
+                    distance_in_x += 0.5
+                elif (player.position.x > map_pos.x):
+                    distance_in_x -= 0.5
+
             # if step = 1/positive x/right, make this 0. if step = -1/negative x/left make it 1.
             one_or_zero = (1 - step.x) / 2
             perceptual_wall_distance = (

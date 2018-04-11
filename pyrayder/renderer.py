@@ -80,7 +80,7 @@ class Renderer:
         # fill screen with back buffer color and then draw the ceiling/sky.
         self.SCREEN.fill(colors.FLOOR_GRAY)
 
-    def _draw_wall_line(self, x, start, height, image_slice, side=Side.TopOrBottom):
+    def _draw_wall_line(self, x, start, height, image_slice, side=Side.TopOrBottom, darken_vertical=True):
         # figure out the position and size of the vertical line we want to draw on screen
         scale_rect = pygame.Rect(x, start, 1, height)
 
@@ -88,7 +88,7 @@ class Renderer:
         scaled = pygame.transform.scale(image_slice, scale_rect.size)
 
         # draw the scaled line where we want to on the screen.
-        if (side == Side.LeftOrRight):
+        if (side == Side.LeftOrRight and darken_vertical):
             self._darken(scaled)
 
         self.SCREEN.blit(scaled, scale_rect)
@@ -186,7 +186,7 @@ class Renderer:
         map_tile = settings.MAP[int(map_pos.x)][int(map_pos.y)]
 
         # we return two values here to get around the immutability of ints in python (an enum is basically an int!)
-        if map_tile == 1 or (map_tile > 8 and map_tile < 10):
+        if map_tile == 1 or (map_tile > 8 and map_tile < 11):
             return True, side
         else:
             return False, side
@@ -460,7 +460,8 @@ class Renderer:
             draw_start = (-line_height / 2) + settings.HALF_SCREEN_HEIGHT
 
             # skip non doors
-            if settings.MAP[int(map_pos.x)][int(map_pos.y)] != 9:
+            block_type = settings.MAP[int(map_pos.x)][int(map_pos.y)]
+            if block_type < 9 and block_type > 10:
                 continue
 
             # skip anything that is closer in the z buffer
@@ -480,7 +481,7 @@ class Renderer:
                 ray_direction, wall_x_across_percentage, texture, side)
 
             self._draw_wall_line(
-                x, draw_start, abs(line_height), texture_slice, side)
+                x, draw_start, abs(line_height), texture_slice, side, False)
 
             # add this to z buffer
             self._wall_z_buffer[x] = (perceptual_wall_distance)
