@@ -18,7 +18,7 @@ MAP = (
     (1,  2,  0,  0,  0,  0,  0,  0,  0, 1),
     (1,  0,  0, 11,  0,  3,  0,  0,  0, 1),
     (1,  0,  0,  0,  0,  0,  0,  0,  0, 1),
-    (1, 12,  0,  0,  2,  3,  0,  0,  0, 1),
+    (1, 2,  9,  2,  2,  3,  0,  0,  0, 1),
     (1,  0,  0,  0,  5,  6,  0,  0,  0, 1),
     (1,  0,  0,  0,  0, 12,  0,  0,  0, 1),
     (1,  0,  0,  0,  0,  0, 11,  0,  4, 1),
@@ -46,8 +46,9 @@ PLAYER_START_DIRECTION = Vector2(1, 0)
 # 66 degree fov. Length 1 would be a 90 degree fov. Camera plane must be perpendicular to player direction!
 PLAYER_START_CAMERA_PLANE = Vector2(0, -0.66)
 
-# store the FOV 
-FOV = abs(math.atan2(PLAYER_START_CAMERA_PLANE.y, PLAYER_START_DIRECTION.length()) * 2)
+# store the FOV
+FOV = abs(math.atan2(PLAYER_START_CAMERA_PLANE.y,
+                     PLAYER_START_DIRECTION.length()) * 2)
 FOV_IN_DEGREES = FOV * constants.DEGREES_IN_A_RADIAN
 
 WALL_PALETTE = [colors.BLACK, colors.WHITE, colors.RED, colors.GREEN,

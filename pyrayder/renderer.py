@@ -151,7 +151,42 @@ class Renderer:
         map_tile = settings.MAP[int(map_pos.x)][int(map_pos.y)]
 
         # we return two values here to get around the immutability of ints in python (an enum is basically an int!)
-        if map_tile > 0 and map_tile < 10:
+        if map_tile > 0 and map_tile < 9:
+            return True, side
+        else:
+            return False, side
+
+    def _perform_wall_dda(self, distance_to_side, distance_delta, step, side, map_pos):
+
+        # jump to next map square, OR in x-direction, OR in y-direction - whichever is the closest side.
+        if distance_to_side.x < distance_to_side.y:
+
+            # increase the distance to side x by 1 map unit in x on the direction of this vector.
+            # This means we will go from touching the next left/right side wall the the wall 1 unit after that.
+            distance_to_side.x += distance_delta.x
+
+            # increase the mapX index by 1/-1 depending on direction.
+            map_pos.x += step.x
+
+            # we are moving in x, so the current side to check is the left or right side.
+            side = Side.LeftOrRight
+
+        else:
+            # increase the distance to side x by 1 map unit in y on the direction of this vector.
+            # This means we will go from touching the next top/bottom side wall the the wall 1 unit after that.
+            distance_to_side.y += distance_delta.y
+
+            # increase the mapY index by 1/-1 depending on direction.
+            map_pos.y += step.y
+
+            # we are moving in y, so the current side to check is the top or bottom side.
+            side = Side.TopOrBottom
+
+        # Check if ray has hit a wall
+        map_tile = settings.MAP[int(map_pos.x)][int(map_pos.y)]
+
+        # we return two values here to get around the immutability of ints in python (an enum is basically an int!)
+        if map_tile == 1 or (map_tile > 8 and map_tile < 10):
             return True, side
         else:
             return False, side
@@ -171,12 +206,13 @@ class Renderer:
             map_pos.x = int(player.position.x)
             map_pos.y = int(player.position.y)
 
-            ray_direction = self.plotter.get_ray_direction(x, player)    
+            ray_direction = self.plotter.get_ray_direction(x, player)
 
             distance_delta = self.plotter.get_distance_delta(ray_direction)
 
             # length of ray from current position to next x or y-side
-            distance_to_side = self.plotter.get_distance_to_side(player.position, map_pos, ray_direction, distance_delta)
+            distance_to_side = self.plotter.get_distance_to_side(
+                player.position, map_pos, ray_direction, distance_delta)
 
             # what direction to step in x or y-direction (either +1 or -1)
             step = Vector2()
@@ -188,15 +224,18 @@ class Renderer:
             # perform DDA
             hit = False
             while not hit:
-                hit, side = self._perform_dda(distance_to_side, distance_delta, step, side, map_pos)
+                hit, side = self._perform_dda(
+                    distance_to_side, distance_delta, step, side, map_pos)
 
             # Calculate distance projected on camera direction (oblique distance will give fisheye effect!)
-            perceptual_wall_distance = self.plotter.get_perceptual_wall_distance(side, player, map_pos, step, ray_direction)
+            perceptual_wall_distance = self.plotter.get_perceptual_wall_distance(
+                side, player, map_pos, step, ray_direction)
 
             # Calculate height of line to draw on screen
             # we bring this into screen space by calculating as distance 1 (at the same point as the camera plane) = screenheight. Distance 2 = 1/2 screenheight. Distance 0.5 = 2 * screenheight.
             # This makes sure the further away we are the smaller the line is and the closer the taller the line is, making sure the screen is filled by objects in the same place as the camera.
-            line_height = self.plotter.get_object_size_based_on_distance(perceptual_wall_distance)
+            line_height = self.plotter.get_object_size_based_on_distance(
+                perceptual_wall_distance)
 
             # calculate lowest and highest pixel to fill in current stripe
             # a start of a line can be through of as half the line up (-y) from the center of the screen in y (screen height /2).
@@ -204,7 +243,8 @@ class Renderer:
 
             texture = self._get_wall_texture_for_block(map_pos)
 
-            wall_x_across_percentage = self.plotter.get_wall_x_across_percentage(side, player.position, ray_direction, perceptual_wall_distance)
+            wall_x_across_percentage = self.plotter.get_wall_x_across_percentage(
+                side, player.position, ray_direction, perceptual_wall_distance)
 
             # get which pixel in x from the texture we want to use
             # it's too expensive to set each pixel directly so we
@@ -228,7 +268,7 @@ class Renderer:
             for y in range(len(settings.MAP[column])):
 
                 value = settings.MAP[column][y]
-                
+
                 if value > 10 and value < 20:  # ignore non sprite objects
                     sprite_pos = Vector2(column + 0.5, y + 0.5)
                     distance_from_player = abs(
@@ -251,20 +291,20 @@ class Renderer:
         for column in range(current_width):
 
                 # check z buffer (clamp index first)
-                x_check = int(sprite_draw_start.x + column)
-                x_check = max(x_check, 0)
-                x_check = min(x_check, settings.SCREEN_WIDTH - 1)
-                
-                if self._wall_z_buffer[x_check] > distance_from_player:
+            x_check = int(sprite_draw_start.x + column)
+            x_check = max(x_check, 0)
+            x_check = min(x_check, settings.SCREEN_WIDTH - 1)
+
+            if self._wall_z_buffer[x_check] > distance_from_player:
 
                     # draw sprite vertical line
-                    location = pygame.Rect(column, 0, 1, current_height)
-                    slice = sprite_texture.subsurface(location)
+                location = pygame.Rect(column, 0, 1, current_height)
+                slice = sprite_texture.subsurface(location)
 
-                    sprite_image_location = (sprite_draw_start.x + column, sprite_draw_start.y)
+                sprite_image_location = (
+                    sprite_draw_start.x + column, sprite_draw_start.y)
 
-                    self.SCREEN.blit(slice, sprite_image_location)
-
+                self.SCREEN.blit(slice, sprite_image_location)
 
     def _get_sprite_distance_from_player(self, player, sprite):
 
@@ -276,7 +316,7 @@ class Renderer:
 
     def _get_sprite_screen_x_position(self, player, sprite):
 
-        #get the distance between the sprite and player
+        # get the distance between the sprite and player
         distance_vector = sprite.map_position - player.position
 
         distance = distance_vector.length()
@@ -288,17 +328,19 @@ class Renderer:
 
         angle_between_sprite_and_player = math.atan2(
             distance_vector.y, distance_vector.x) - player_rotation
-        
-        #calculate what angle one column of pixels on screen represents
+
+        # calculate what angle one column of pixels on screen represents
         radians_per_stripe = settings.FOV / settings.SCREEN_WIDTH
 
         # find the sprite horizontal center by converting the angle into a distance in pixels from the center of screen.
-        angle_between_sprite_and_player_in_pixels = (angle_between_sprite_and_player / radians_per_stripe)
-        sprite_x_center = settings.HALF_SCREEN_WIDTH - angle_between_sprite_and_player_in_pixels
+        angle_between_sprite_and_player_in_pixels = (
+            angle_between_sprite_and_player / radians_per_stripe)
+        sprite_x_center = settings.HALF_SCREEN_WIDTH - \
+            angle_between_sprite_and_player_in_pixels
 
         sprite_size = self.plotter.get_object_size_based_on_distance(distance)
 
-        #find the x position of the leftmost part of the sprite.
+        # find the x position of the leftmost part of the sprite.
         sprite_leftmost_col_x = sprite_x_center - (sprite_size / 2)
 
         return sprite_leftmost_col_x
@@ -315,9 +357,12 @@ class Renderer:
             index = sprite.sprite_index - 11
             sprite_texture = self.SPRITE_TEXTURES[index]
 
-            sprite_distance = self._get_sprite_distance_from_player(player, sprite)
-            sprite_size = self.plotter.get_object_size_based_on_distance(sprite_distance)
-            sprite_screen_x_position = self._get_sprite_screen_x_position(player, sprite)
+            sprite_distance = self._get_sprite_distance_from_player(
+                player, sprite)
+            sprite_size = self.plotter.get_object_size_based_on_distance(
+                sprite_distance)
+            sprite_screen_x_position = self._get_sprite_screen_x_position(
+                player, sprite)
 
             sprite_draw_start_y = settings.HALF_SCREEN_HEIGHT - \
                 (sprite_size / 2)
@@ -329,8 +374,10 @@ class Renderer:
             sprite_texture = pygame.transform.scale(
                 sprite_texture, (sprite_size, sprite_size))
 
-            sprite_draw_start = Vector2(sprite_screen_x_position, sprite_draw_start_y)
-            self._draw_sprite_columns(sprite_distance, sprite_draw_start, sprite_texture)
+            sprite_draw_start = Vector2(
+                sprite_screen_x_position, sprite_draw_start_y)
+            self._draw_sprite_columns(
+                sprite_distance, sprite_draw_start, sprite_texture)
 
     def _draw_sky(self, player):
         # load the sky texture
@@ -345,7 +392,8 @@ class Renderer:
 
         sky_texture_window_width = sky_texture.get_width() * fov_over_circle_ratio
 
-        sky_texture_window_width = sky_texture_window_width * (constants.HALF_CIRCLE_IN_RADIANS / settings.FOV)
+        sky_texture_window_width = sky_texture_window_width * \
+            (constants.HALF_CIRCLE_IN_RADIANS / settings.FOV)
 
         # avoid a divide by zero
         player_rotation_in_degrees = max(player.get_rotation_degrees(), 1)
@@ -356,22 +404,93 @@ class Renderer:
         x_start_pos = portion * sky_texture_window_width
 
         # get the part of the image we want to draw from the texture
-        image_location = pygame.Rect(x_start_pos, 0, sky_texture_window_width, sky_texture.get_height())
+        image_location = pygame.Rect(
+            x_start_pos, 0, sky_texture_window_width, sky_texture.get_height())
         sky_texture_slice = sky_texture.subsurface(image_location)
 
         # scale that slice so it will fit the top half of the screen
         sky_texture_slice_scaled = pygame.transform.scale(
             sky_texture_slice, (int(settings.SCREEN_WIDTH),
-                          int(settings.HALF_SCREEN_HEIGHT)))
+                                int(settings.HALF_SCREEN_HEIGHT)))
 
-        #the sky texture scaled slice should be draw from the top left (x = 0, y = 0)
+        # the sky texture scaled slice should be draw from the top left (x = 0, y = 0)
         self.SCREEN.blit(sky_texture_slice_scaled, (0, 0))
+
+    def _draw_doors(self, player):
+        for x in range(0, settings.SCREEN_WIDTH):
+
+            # which box of the map we're in
+            map_pos = Vector2()
+            map_pos.x = int(player.position.x)
+            map_pos.y = int(player.position.y)
+
+            ray_direction = self.plotter.get_ray_direction(x, player)
+
+            distance_delta = self.plotter.get_distance_delta(ray_direction)
+
+            # length of ray from current position to next x or y-side
+            distance_to_side = self.plotter.get_distance_to_side(
+                player.position, map_pos, ray_direction, distance_delta)
+
+            # what direction to step in x or y-direction (either +1 or -1)
+            step = Vector2()
+            step.x = -1 if ray_direction.x < 0 else 1
+            step.y = -1 if ray_direction.y < 0 else 1
+
+            side = Side.LeftOrRight  # was a NS or a EW wall hit?
+
+            # perform DDA
+            hit = False
+            while not hit:
+                hit, side = self._perform_wall_dda(
+                    distance_to_side, distance_delta, step, side, map_pos)
+
+            map_pos.y += 0.5
+
+            # Calculate distance projected on camera direction (oblique distance will give fisheye effect!)
+            perceptual_wall_distance = self.plotter.get_perceptual_wall_distance(
+                side, player, map_pos, step, ray_direction)
+
+            # Calculate height of line to draw on screen
+            # we bring this into screen space by calculating as distance 1 (at the same point as the camera plane) = screenheight. Distance 2 = 1/2 screenheight. Distance 0.5 = 2 * screenheight.
+            # This makes sure the further away we are the smaller the line is and the closer the taller the line is, making sure the screen is filled by objects in the same place as the camera.
+            line_height = self.plotter.get_object_size_based_on_distance(
+                perceptual_wall_distance)
+
+            # calculate lowest and highest pixel to fill in current stripe
+            # a start of a line can be through of as half the line up (-y) from the center of the screen in y (screen height /2).
+            draw_start = (-line_height / 2) + settings.HALF_SCREEN_HEIGHT
+
+            if settings.MAP[int(map_pos.x)][int(map_pos.y)] != 9:
+                continue
+
+            if self._wall_z_buffer[x] < (perceptual_wall_distance):
+                continue
+
+            texture = self._get_wall_texture_for_block(map_pos)
+
+            wall_x_across_percentage = self.plotter.get_wall_x_across_percentage(
+                side, player.position, ray_direction, perceptual_wall_distance)
+
+            # get which pixel in x from the texture we want to use
+            # it's too expensive to set each pixel directly so we
+            # map the line we want from the texture and draw that directly
+            # to the screens surface.
+            texture_slice = self._get_wall_texture_slice(
+                ray_direction, wall_x_across_percentage, texture, side)
+
+            self._draw_wall_line(
+                x, draw_start, line_height, texture_slice, side)
+
+            # add this to z buffer
+            self._wall_z_buffer[x] = (perceptual_wall_distance)
 
     def render(self, player, fps):
         """This method draws everything to the screen"""
         self._draw_floor()
         self._draw_sky(player)
         self._draw_walls(player)
+        self._draw_doors(player)
         self._draw_sprites(player)
         self._draw_ui(player, fps)
 
