@@ -445,8 +445,6 @@ class Renderer:
                 hit, side = self._perform_wall_dda(
                     distance_to_side, distance_delta, step, side, map_pos)
 
-            map_pos.y += 0.5
-
             # Calculate distance projected on camera direction (oblique distance will give fisheye effect!)
             perceptual_wall_distance = self.plotter.get_perceptual_wall_distance(
                 side, player, map_pos, step, ray_direction)
@@ -461,9 +459,11 @@ class Renderer:
             # a start of a line can be through of as half the line up (-y) from the center of the screen in y (screen height /2).
             draw_start = (-line_height / 2) + settings.HALF_SCREEN_HEIGHT
 
+            # skip non doors
             if settings.MAP[int(map_pos.x)][int(map_pos.y)] != 9:
                 continue
 
+            # skip anything that is closer in the z buffer
             if self._wall_z_buffer[x] < (perceptual_wall_distance):
                 continue
 
@@ -480,7 +480,7 @@ class Renderer:
                 ray_direction, wall_x_across_percentage, texture, side)
 
             self._draw_wall_line(
-                x, draw_start, line_height, texture_slice, side)
+                x, draw_start, abs(line_height), texture_slice, side)
 
             # add this to z buffer
             self._wall_z_buffer[x] = (perceptual_wall_distance)

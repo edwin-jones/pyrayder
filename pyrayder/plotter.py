@@ -21,7 +21,7 @@ class Plotter:
            should consume based on its distance from the player"""
 
         size = int(settings.SCREEN_HEIGHT /
-                            self._avoid_zero(distance))
+                   self._avoid_zero(distance))
 
         return size
 
@@ -44,7 +44,7 @@ class Plotter:
         distance_to_side.x = distance_delta.x * x_ratio
         distance_to_side.y = distance_delta.y * y_ratio
 
-        return distance_to_side  
+        return distance_to_side
 
     def get_ray_direction(self, x, player):
         """get a vector that represents the direction a ray travels from the player
@@ -117,6 +117,14 @@ class Plotter:
         else:
             # this difference is how far the ray has travelled in y before hitting a wall.
             distance_in_y = map_pos.y - player.position.y
+
+            if settings.MAP[int(map_pos.x)][int(map_pos.y)] == 9:
+
+                if(player.position.y < map_pos.y):
+                    distance_in_y += 0.5
+                elif (player.position.y > map_pos.y):
+                    distance_in_y -= 0.5
+
             # if step = 1/positive y/up, make this 0. if step = -1/negative y/down make it 1.
             one_or_zero = (1 - step.y) / 2
             perceptual_wall_distance = (
@@ -124,5 +132,5 @@ class Plotter:
 
         perceptual_wall_distance = self._avoid_zero(
             perceptual_wall_distance)
-        
+
         return perceptual_wall_distance
