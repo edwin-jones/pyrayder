@@ -39,6 +39,9 @@ class Renderer:
         # init the z buffer to the size of the screen. This is faster than using append() and clear()
         self._wall_z_buffer = [None] * settings.SCREEN_WIDTH
 
+        # this buffer saves us a some peformance when drawing doors
+        self._door_x_buffer = []
+
     def _darken(self, surface):
         "This method takes in a surface and drops its brightness in half"
 
@@ -121,7 +124,7 @@ class Renderer:
 
         return image_slice
 
-    def _perform_dda(self, distance_to_side, distance_delta, step, side, map_pos):
+    def _perform_dda(self, distance_to_side, distance_delta, step, side, map_pos, x):
 
         # jump to next map square, OR in x-direction, OR in y-direction - whichever is the closest side.
         if distance_to_side.x < distance_to_side.y:
@@ -154,6 +157,8 @@ class Renderer:
         if map_tile > 0 and map_tile < 9:
             return True, side
         else:
+            if map_tile == 9 or map_tile == 10:
+                self._door_x_buffer.append(x)
             return False, side
 
     def _perform_wall_dda(self, distance_to_side, distance_delta, step, side, map_pos):
@@ -225,7 +230,7 @@ class Renderer:
             hit = False
             while not hit:
                 hit, side = self._perform_dda(
-                    distance_to_side, distance_delta, step, side, map_pos)
+                    distance_to_side, distance_delta, step, side, map_pos, x)
 
             # Calculate distance projected on camera direction (oblique distance will give fisheye effect!)
             perceptual_wall_distance = self.plotter.get_perceptual_wall_distance(
@@ -417,7 +422,7 @@ class Renderer:
         self.SCREEN.blit(sky_texture_slice_scaled, (0, 0))
 
     def _draw_doors(self, player):
-        for x in range(0, settings.SCREEN_WIDTH):
+        for x in self._door_x_buffer:
 
             # which box of the map we're in
             map_pos = Vector2()
@@ -485,6 +490,9 @@ class Renderer:
 
             # add this to z buffer
             self._wall_z_buffer[x] = (perceptual_wall_distance)
+
+        #clear the buffer!    
+        self._door_x_buffer.clear()
 
     def render(self, player, fps):
         """This method draws everything to the screen"""
