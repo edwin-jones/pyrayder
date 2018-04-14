@@ -265,73 +265,6 @@ class Renderer:
 
                     self.SCREEN.blit(slice, sprite_image_location)
 
-
-    def _get_sprite_distance_from_player(self, player, sprite):
-
-        sprite_pos = sprite.map_position
-        distance_vector = sprite_pos - player.position
-        distance = distance_vector.length()
-
-        return distance
-
-    def _get_sprite_screen_x_position(self, player, sprite):
-
-        #get the distance between the sprite and player
-        distance_vector = sprite.map_position - player.position
-
-        distance = distance_vector.length()
-
-        # Find angle between player and sprite
-        # we do this by finding the angle between the sprite and player position,
-        # THEN subtracting the player's current rotation from that.
-        player_rotation = player.get_rotation()
-
-        angle_between_sprite_and_player = math.atan2(
-            distance_vector.y, distance_vector.x) - player_rotation
-        
-        #calculate what angle one column of pixels on screen represents
-        radians_per_stripe = settings.FOV / settings.SCREEN_WIDTH
-
-        # find the sprite horizontal center by converting the angle into a distance in pixels from the center of screen.
-        angle_between_sprite_and_player_in_pixels = (angle_between_sprite_and_player / radians_per_stripe)
-        sprite_x_center = settings.HALF_SCREEN_WIDTH - angle_between_sprite_and_player_in_pixels
-
-        sprite_size = self.plotter.get_object_size_based_on_distance(distance)
-
-        #find the x position of the leftmost part of the sprite.
-        sprite_leftmost_col_x = sprite_x_center - (sprite_size / 2)
-
-        return sprite_leftmost_col_x
-
-    def _draw_sprites(self, player):
-        # find all sprites on the map!
-        sprite_positions = self._get_sprite_positions(player)
-
-        # this is rendering sprites slightly incorrectly due to a fisheye effect
-        # because I am taking the full distance of the sprite from the player, not the perpedicular distance
-        # from the camera plane. TODO - Fix this!
-        for sprite in sprite_positions:
-
-            index = sprite.sprite_index - 11
-            sprite_texture = self.SPRITE_TEXTURES[index]
-
-            sprite_distance = self._get_sprite_distance_from_player(player, sprite)
-            sprite_size = self.plotter.get_object_size_based_on_distance(sprite_distance)
-            sprite_screen_x_position = self._get_sprite_screen_x_position(player, sprite)
-
-            sprite_draw_start_y = settings.HALF_SCREEN_HEIGHT - \
-                (sprite_size / 2)
-
-            # clamp draw start and draw end - there is no point drawing off the top or bottom of the screen.
-            # remember, we draw from top to bottom.
-            sprite_draw_start_y = max(sprite_draw_start_y, 0)
-
-            sprite_texture = pygame.transform.scale(
-                sprite_texture, (sprite_size, sprite_size))
-
-            sprite_draw_start = Vector2(sprite_screen_x_position, sprite_draw_start_y)
-            self._draw_sprite_columns(sprite_distance, sprite_draw_start, sprite_texture)
-
     def _draw_sky(self, player):
         # load the sky texture
         current_directory = os.path.dirname(os.path.realpath(__file__))
@@ -372,7 +305,6 @@ class Renderer:
         self._draw_floor()
         self._draw_sky(player)
         self._draw_walls(player)
-        self._draw_sprites(player)
         self._draw_ui(player, fps)
 
         # Go ahead and update the screen with what we've drawn.
