@@ -13,6 +13,8 @@ You will can then run the project with:
 python pyrayder
 ```
 
+_NB: On some systems, you may need to type `python3` instead of `python`._
+
 Use the arrow keys to move.
 
 ## Disclaimers
